@@ -50,6 +50,7 @@ const jsRules = {
                   'last 2 iOS major versions',
                   'last 2 ChromeAndroid major versions',
                 ],
+                ie: '11',
               },
             },
           ],
