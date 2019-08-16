@@ -145,6 +145,7 @@ class Clipboard extends Module {
   onCapturePaste(e) {
     if (e.defaultPrevented || !this.quill.isEnabled()) return;
     e.preventDefault();
+    if (this.options.onCapturePaste.call(this, e)) return;
     const range = this.quill.getSelection(true);
     if (range == null) return;
     const html = e.clipboardData.getData('text/html');
@@ -209,6 +210,7 @@ class Clipboard extends Module {
 }
 Clipboard.DEFAULTS = {
   matchers: [],
+  onCapturePaste: () => {},
 };
 
 function applyFormat(delta, format, value) {
