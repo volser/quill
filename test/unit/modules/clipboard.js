@@ -127,6 +127,12 @@ describe('Clipboard', function() {
       );
     });
 
+    it('multi whitespace', function() {
+      const text = '   ';
+      const delta = this.clipboard.convert({ text });
+      expect(delta).toEqual(new Delta().insert(text));
+    });
+
     it('consecutive intentional whitespace', function() {
       const html = '<strong>&nbsp;&nbsp;1&nbsp;&nbsp;</strong>';
       const delta = this.clipboard.convert({ html });

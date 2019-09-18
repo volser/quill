@@ -90,6 +90,7 @@ class Clipboard extends Module {
       container = doc.body;
     } else {
       container = document.createElement('span');
+      container.dataset.source = 'text';
       container.innerText = text || '';
     }
     const nodeMatches = new WeakMap();
@@ -508,7 +509,12 @@ function matchText(node, delta) {
       return replaced.length < 1 && collapse ? ' ' : replaced;
     };
     text = text.replace(/\r\n/g, ' ').replace(/\n/g, ' ');
-    text = text.replace(/\s\s+/g, replacer.bind(replacer, true)); // collapse whitespace
+    if (
+      node.parentNode.tagName !== 'SPAN' ||
+      node.parentNode.dataset.source !== 'text'
+    ) {
+      text = text.replace(/\s\s+/g, replacer.bind(replacer, true)); // collapse whitespace
+    }
     if (
       (node.previousSibling == null && isLine(node.parentNode)) ||
       (node.previousSibling != null && isLine(node.previousSibling))
