@@ -511,12 +511,15 @@ function matchText(node, delta) {
     text = text.replace(/\r\n/g, ' ').replace(/\n/g, ' ');
     // text = text.replace(/\s\s+/g, replacer.bind(replacer, true)); // collapse whitespace
 
+    /*
     if (
       (node.previousSibling == null && isLine(node.parentNode)) ||
       (node.previousSibling != null && isLine(node.previousSibling))
     ) {
       text = text.replace(/^\s+/, replacer.bind(replacer, false));
     }
+    */
+
     if (
       (node.nextSibling == null && isLine(node.parentNode)) ||
       (node.nextSibling != null && isLine(node.nextSibling))

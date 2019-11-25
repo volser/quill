@@ -102,7 +102,14 @@ describe('Clipboard', function() {
         '<div> 0 </div><div> <div> 1 2 <span> 3 </span> 4 </div> </div>' +
         '<div><span>5 </span><span>6 </span><span> 7</span><span> 8</span></div>';
       const delta = this.clipboard.convert({ html });
-      expect(delta).toEqual(new Delta().insert('0\n1 2  3  4\n5 6  7 8'));
+      expect(delta).toEqual(new Delta().insert(' 0\n 1 2  3  4\n5 6  7 8'));
+    });
+
+    it('whitespace keep', function() {
+      const html =
+        '<div>1</div><div>  2</div><div>    3</div><div>  2</div><div>1</div>';
+      const delta = this.clipboard.convert({ html });
+      expect(delta).toEqual(new Delta().insert('1\n  2\n    3\n  2\n1'));
     });
 
     it('inline whitespace', function() {
