@@ -1,0 +1,451 @@
+import Quill from "../../core/quill"
+
+const Block = Quill.import("blots/block")
+const Container = Quill.import("blots/container")
+
+const COL_ATTRIBUTES = ["width"]
+const COL_DEFAULT = {
+  width: 150
+}
+const CELL_IDENTITY_KEYS = ["row", "cell"]
+const CELL_ATTRIBUTES = ["rowspan", "colspan"]
+const CELL_DEFAULT = {
+  rowspan: 1,
+  colspan: 1
+}
+
+class TableCellLine extends Block {
+  static create(value) {
+    const node = super.create(value)
+
+    CELL_IDENTITY_KEYS.forEach(key => {
+      let identityMaker = key === 'row'
+        ? rowId : cellId
+      node.setAttribute(`data-${key}`, value[key] || identityMaker())
+    })
+
+    CELL_ATTRIBUTES.forEach(attrName => {
+      node.setAttribute(`data-${attrName}`, value[attrName] || CELL_DEFAULT[attrName])
+    })
+
+    return node
+  }
+
+  static formats(domNode) {
+    const formats = {}
+
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS).reduce((formats, attribute) => {
+      if (domNode.hasAttribute(`data-${attribute}`)) {
+        formats[attribute] = domNode.getAttribute(`data-${attribute}`) || undefined
+      }
+      return formats
+    }, formats)
+  }
+
+  format(name, value) {
+    if (CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS).indexOf(name) > -1) {
+      if (value) {
+        this.domNode.setAttribute(`data-${name}`, value)
+      } else {
+        this.domNode.removeAttribute(`data-${name}`)
+      }
+    } else {
+      super.format(name, value)
+    }
+  }
+
+  optimize(context) {
+    // cover shadowBlot's wrap call, pass params parentBlot initialize
+    // needed
+    const rowId = this.domNode.getAttribute('data-row')
+    const rowspan = this.domNode.getAttribute('data-rowspan')
+    const colspan = this.domNode.getAttribute('data-colspan')
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        row: rowId,
+        colspan,
+        rowspan
+      })
+    }
+    super.optimize(context)
+  }
+
+  tableCell() {
+    return this.parent
+  }
+}
+TableCellLine.blotName = "table-cell-line"
+TableCellLine.className = "qlbt-cell-line"
+TableCellLine.tagName = "P"
+
+class TableCell extends Container {
+  checkMerge() {
+    if (super.checkMerge() && this.next.children.head != null) {
+      const thisHead = this.children.head.formats()[this.children.head.statics.blotName]
+      const thisTail = this.children.tail.formats()[this.children.tail.statics.blotName]
+      const nextHead = this.next.children.head.formats()[this.next.children.head.statics.blotName]
+      const nextTail = this.next.children.tail.formats()[this.next.children.tail.statics.blotName]
+      return (
+        thisHead.cell === thisTail.cell &&
+        thisHead.cell === nextHead.cell &&
+        thisHead.cell === nextTail.cell
+      )
+    }
+    return false
+  }
+
+  static create(value) {
+    const node = super.create(value)
+    node.setAttribute("data-row", value.row)
+
+    CELL_ATTRIBUTES.forEach(attrName => {
+      if (value[attrName]) {
+        node.setAttribute(attrName, value[attrName])
+      }
+    })
+
+    if (value['cell-bg']) {
+      node.setAttribute('data-cell-bg', value['cell-bg'])
+      node.style.backgroundColor = value['cell-bg']
+    }
+
+    return node
+  }
+
+  static formats(domNode) {
+    const formats = {}
+
+    if (domNode.hasAttribute("data-row")) {
+      formats["row"] = domNode.getAttribute("data-row")
+    }
+
+    if (domNode.hasAttribute("data-cell-bg")) {
+      formats["cell-bg"] = domNode.getAttribute("data-cell-bg")
+    }
+
+    return CELL_ATTRIBUTES.reduce((formats, attribute) => {
+      if (domNode.hasAttribute(attribute)) {
+        formats[attribute] = domNode.getAttribute(attribute)
+      }
+
+      return formats
+    }, formats)
+  }
+
+  cellOffset() {
+    if (this.parent) {
+      return this.parent.children.indexOf(this)
+    }
+    return -1
+  }
+
+  formats() {
+    const formats = {}
+
+    if (this.domNode.hasAttribute("data-row")) {
+      formats["row"] = this.domNode.getAttribute("data-row")
+    }
+
+    if (this.domNode.hasAttribute("data-cell-bg")) {
+      formats["cell-bg"] = this.domNode.getAttribute("data-cell-bg")
+    }
+
+    return CELL_ATTRIBUTES.reduce((formats, attribute) => {
+      if (this.domNode.hasAttribute(attribute)) {
+        formats[attribute] = this.domNode.getAttribute(attribute)
+      }
+
+      return formats
+    }, formats)
+  }
+
+  toggleAttribute (name, value) {
+    if (value) {
+      this.domNode.setAttribute(name, value)
+    } else {
+      this.domNode.removeAttribute(name)
+    }
+  }
+
+  formatChildren (name, value) {
+    this.children.forEach(child => {
+      child.format(name, value)
+    })
+  }
+
+  format(name, value) {
+    if (CELL_ATTRIBUTES.indexOf(name) > -1) {
+      this.toggleAttribute(name, value)
+      this.formatChildren(name, value)
+    } else if (['row'].indexOf(name) > -1) {
+      this.toggleAttribute(`data-${name}`, value)
+      this.formatChildren(name, value)
+    } else {
+      super.format(name, value)
+    }
+  }
+
+  optimize(context) {
+    const rowId = this.domNode.getAttribute("data-row")
+
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        row: rowId
+      })
+    }
+    super.optimize(context)
+  }
+
+  row() {
+    return this.parent
+  }
+
+  rowOffset() {
+    if (this.row()) {
+      return this.row().rowOffset()
+    }
+    return -1
+  }
+
+  table() {
+    return this.row() && this.row().table()
+  }
+}
+TableCell.blotName = "table"
+TableCell.tagName = "TD"
+
+class TableRow extends Container {
+  checkMerge() {
+    if (super.checkMerge() && this.next.children.head != null) {
+      const thisHead = this.children.head.formats()
+      const thisTail = this.children.tail.formats()
+      const nextHead = this.next.children.head.formats()
+      const nextTail = this.next.children.tail.formats()
+
+      return (
+        thisHead.row === thisTail.row &&
+        thisHead.row === nextHead.row &&
+        thisHead.row === nextTail.row
+      )
+    }
+    return false
+  }
+
+  static create(value) {
+    const node = super.create(value)
+    node.setAttribute("data-row", value.row)
+    return node
+  }
+
+  formats() {
+    return ["row"].reduce((formats, attrName) => {
+      if (this.domNode.hasAttribute(`data-${attrName}`)) {
+        formats[attrName] = this.domNode.getAttribute(`data-${attrName}`)
+      }
+      return formats
+    }, {})
+  }
+
+  optimize (context) {
+    // optimize function of ShadowBlot
+    if (
+      this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)
+    ) {
+      this.wrap(this.statics.requiredContainer.blotName)
+    }
+
+    // optimize function of ParentBlot
+    // note: modified this optimize function because
+    // TableRow should not be removed when the length of its children was 0
+    this.enforceAllowedChildren()
+    if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
+      this.domNode.insertBefore(this.uiNode, this.domNode.firstChild)
+    }
+
+    // optimize function of ContainerBlot
+    if (this.children.length > 0 && this.next != null && this.checkMerge()) {
+      this.next.moveChildren(this)
+      this.next.remove()
+    }
+  }
+
+  rowOffset() {
+    if (this.parent) {
+      return this.parent.children.indexOf(this)
+    }
+    return -1
+  }
+
+  table() {
+    return this.parent && this.parent.parent
+  }
+}
+TableRow.blotName = "table-row"
+TableRow.tagName = "TR"
+
+class TableBody extends Container {}
+TableBody.blotName = "table-body"
+TableBody.tagName = "TBODY"
+
+class TableCol extends Block {
+  static create (value) {
+    let node = super.create(value)
+    COL_ATTRIBUTES.forEach(attrName => {
+      node.setAttribute(`${attrName}`, value[attrName] || COL_DEFAULT[attrName])
+    })
+    return node
+  }
+
+  static formats(domNode) {
+    return COL_ATTRIBUTES.reduce((formats, attribute) => {
+      if (domNode.hasAttribute(`${attribute}`)) {
+        formats[attribute] =
+          domNode.getAttribute(`${attribute}`) || undefined
+      }
+      return formats
+    }, {})
+  }
+
+  format(name, value) {
+    if (COL_ATTRIBUTES.indexOf(name) > -1) {
+      this.domNode.setAttribute(`${name}`, value || COL_DEFAULT[name])
+    } else {
+      super.format(name, value)
+    }
+  }
+
+  html () {
+    return this.domNode.outerHTML
+  }
+}
+TableCol.blotName = "table-col"
+TableCol.tagName = "col"
+
+class TableColGroup extends Container {}
+TableColGroup.blotName = "table-col-group"
+TableColGroup.tagName = "colgroup"
+
+class TableContainer extends Container {
+  static create() {
+    let node = super.create()
+    return node
+  }
+
+  constructor (scroll, domNode) {
+    super(scroll, domNode)
+    this.updateTableWidth()
+  }
+
+  updateTableWidth () {
+    setTimeout(() => {
+      const colGroup = this.colGroup()
+      if (!colGroup) return
+      const tableWidth = colGroup.children.reduce((sumWidth, col) => {
+        sumWidth = sumWidth + parseInt(col.formats()[TableCol.blotName].width, 10)
+        return sumWidth
+      }, 0)
+      this.domNode.style.width = `${tableWidth}px`
+    }, 0)
+  }
+
+  cells(column) {
+    return this.rows().map(row => row.children.at(column))
+  }
+
+  colGroup () {
+    return this.children.head
+  }
+
+  rows() {
+    const body = this.children.tail
+    if (body == null) return []
+    return body.children.map(row => row)
+  }
+}
+TableContainer.blotName = "table-container"
+TableContainer.className = "clickup-table"
+TableContainer.tagName = "TABLE"
+
+class TableView extends Container {
+  constructor (scroll, domNode) {
+    super(scroll, domNode)
+    const quill = Quill.find(scroll.domNode.parentNode)
+    domNode.addEventListener('scroll', (e) => {
+      const tableModule = quill.getModule('better-table')
+      if (tableModule.columnTool) {
+        tableModule.columnTool.domNode.scrollLeft = e.target.scrollLeft
+      }
+
+      if (tableModule.tableSelection &&
+        tableModule.tableSelection.selectedTds.length > 0) {
+        tableModule.tableSelection.repositionHelpLines()
+      }
+    }, false)
+  }
+
+  table () {
+    return this.children.head
+  }
+}
+TableView.blotName = "table-view"
+TableView.className = "clickup-table-view"
+TableView.tagName = "DIV"
+
+TableView.allowedChildren = [TableContainer]
+TableContainer.requiredContainer = TableView
+
+TableContainer.allowedChildren = [TableBody, TableColGroup]
+TableBody.requiredContainer = TableContainer
+
+TableBody.allowedChildren = [TableRow]
+TableRow.requiredContainer = TableBody
+
+TableRow.allowedChildren = [TableCell]
+TableCell.requiredContainer = TableRow
+
+TableCell.allowedChildren = [TableCellLine]
+TableCellLine.requiredContainer = TableCell
+
+TableColGroup.allowedChildren = [TableCol]
+TableColGroup.requiredContainer = TableContainer
+
+TableCol.requiredContainer = TableColGroup
+
+
+function rowId() {
+  const id = Math.random()
+    .toString(36)
+    .slice(2, 8)
+  return `row-${id}`
+}
+
+function cellId() {
+  const id = Math.random()
+    .toString(36)
+    .slice(2, 8)
+  return `cell-${id}`
+}
+
+export {
+  // blots
+  TableCol,
+  TableColGroup,
+  TableCellLine,
+  TableCell,
+  TableRow,
+  TableBody,
+  TableContainer,
+  TableView,
+
+  // identity getters
+  rowId,
+  cellId,
+
+  // attributes
+  CELL_IDENTITY_KEYS,
+  CELL_ATTRIBUTES
+}
+
