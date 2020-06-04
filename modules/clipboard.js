@@ -34,7 +34,7 @@ const CLIPBOARD_CONFIG = [
   ['li', matchIndent],
   ['ol, ul', matchList],
   ['pre', matchCodeBlock],
-  ['tr', matchTable],
+  // ['tr', matchTable], // clickup: remove the quilljs built-in matcher 
   ['b', matchAlias.bind(matchAlias, 'bold')],
   ['i', matchAlias.bind(matchAlias, 'italic')],
   ['strike', matchAlias.bind(matchAlias, 'strike')],

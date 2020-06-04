@@ -31,6 +31,7 @@ import Video from './formats/video';
 import CodeBlock, { Code as InlineCode } from './formats/code';
 
 import Syntax from './modules/syntax';
+// clickup: replace the import path of table module to clickup-table
 import Table from './modules/clickup-table/table';
 import Toolbar from './modules/toolbar';
 

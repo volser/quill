@@ -14,6 +14,12 @@ import {
   cellId
 } from './formats';
 
+import {
+  matchTableCell,
+  matchTableHeader,
+  matchTable
+} from './node-matchers'
+
 class Table extends Module {
   static register() {
     Quill.register(TableCol, true);
@@ -26,8 +32,12 @@ class Table extends Module {
     Quill.register(TableView, true);
   }
 
-  constructor(...args) {
-    super(...args);
+  constructor(quill, options) {
+    super(quill, options);
+
+    quill.clipboard.addMatcher('td', matchTableCell)
+    quill.clipboard.addMatcher('th', matchTableHeader)
+    quill.clipboard.addMatcher('table', matchTable)
   }
 
   deleteTable() {

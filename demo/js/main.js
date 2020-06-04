@@ -16,4 +16,9 @@ window.onload = () => {
     .addEventListener('click', () => {
       tableModule.insertTable(3, 3)
     }, false)
+
+  document.querySelector('#get-delta')
+    .addEventListener('click', () => {
+      console.log(quill.getContents())
+    }, false)
 }
