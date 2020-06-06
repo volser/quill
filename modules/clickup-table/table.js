@@ -10,6 +10,8 @@ import {
   TableBody,
   TableContainer,
   TableView,
+  ListItem,
+  ListContainer,
   rowId,
   cellId
 } from './formats';
@@ -30,6 +32,10 @@ class Table extends Module {
     Quill.register(TableBody, true);
     Quill.register(TableContainer, true);
     Quill.register(TableView, true);
+    // List must be registered in TableModule
+    // or TDZ references error
+    Quill.register(ListItem, true);
+    Quill.register(ListContainer, true)
   }
 
   constructor(quill, options) {

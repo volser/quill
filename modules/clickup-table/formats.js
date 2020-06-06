@@ -49,6 +49,16 @@ class TableCellLine extends Block {
       } else {
         this.domNode.removeAttribute(`data-${name}`)
       }
+    } else if (name === 'list') {
+      if (!value) return;
+      const { row, cell, rowspan, colspan } = TableCellLine.formats(this.domNode)
+      super.format(name, {
+        list: value,
+        row,
+        cell,
+        rowspan,
+        colspan
+      })
     } else {
       super.format(name, value)
     }
@@ -82,10 +92,15 @@ TableCellLine.tagName = "P"
 class TableCell extends Container {
   checkMerge() {
     if (super.checkMerge() && this.next.children.head != null) {
-      const thisHead = this.children.head.formats()[this.children.head.statics.blotName]
-      const thisTail = this.children.tail.formats()[this.children.tail.statics.blotName]
-      const nextHead = this.next.children.head.formats()[this.next.children.head.statics.blotName]
-      const nextTail = this.next.children.tail.formats()[this.next.children.tail.statics.blotName]
+      const thisHead = this.children.head.formats()[this.children.head.statics.blotName] ||
+        this.children.head.formats()
+      const thisTail = this.children.tail.formats()[this.children.tail.statics.blotName] ||
+        this.children.tail.formats()
+      const nextHead = this.next.children.head.formats()[this.next.children.head.statics.blotName] ||
+        this.next.children.head.formats()
+      const nextTail = this.next.children.tail.formats()[this.next.children.tail.statics.blotName] ||
+        this.next.children.tail.formats()
+
       return (
         thisHead.cell === thisTail.cell &&
         thisHead.cell === nextHead.cell &&
@@ -105,11 +120,6 @@ class TableCell extends Container {
       }
     })
 
-    if (value['cell-bg']) {
-      node.setAttribute('data-cell-bg', value['cell-bg'])
-      node.style.backgroundColor = value['cell-bg']
-    }
-
     return node
   }
 
@@ -118,10 +128,6 @@ class TableCell extends Container {
 
     if (domNode.hasAttribute("data-row")) {
       formats["row"] = domNode.getAttribute("data-row")
-    }
-
-    if (domNode.hasAttribute("data-cell-bg")) {
-      formats["cell-bg"] = domNode.getAttribute("data-cell-bg")
     }
 
     return CELL_ATTRIBUTES.reduce((formats, attribute) => {
@@ -394,6 +400,178 @@ TableView.blotName = "table-view"
 TableView.className = "clickup-table-view"
 TableView.tagName = "DIV"
 
+class ListContainer extends Container {
+  static create(value) {
+    const node = super.create(value)
+
+    CELL_ATTRIBUTES
+      .concat(CELL_IDENTITY_KEYS)
+      .concat(['list'])
+      .forEach(attrName => {
+        if (value[attrName]) {
+          node.setAttribute(`data-${attrName}`, value[attrName])
+        }
+      })
+
+    return node
+  }
+
+  static formats(domNode) {
+    const formats = {}
+
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+      .concat(['list'])
+      .reduce((formats, attribute) => {
+        if (domNode.hasAttribute(`data-${attribute}`)) {
+          formats[attribute] = domNode.getAttribute(`data-${attribute}`) || undefined
+        }
+        return formats
+      }, formats)
+  }
+
+  formats() {
+    const formats = {}
+
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+      .reduce((formats, attribute) => {
+        if (this.domNode.hasAttribute(`data-${attribute}`)) {
+          formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
+        }
+        return formats
+      }, formats)
+  }
+
+  optimize(context) {
+    const { row, cell, rowspan, colspan } = ListContainer.formats(this.domNode)
+    if (
+      row &&
+      !(this.parent instanceof TableCell)
+    ) {
+      this.wrap(TableCell.blotName, {
+        row,
+        cell,
+        colspan,
+        rowspan
+      })
+    }
+
+    // ShadowBlot optimize
+    this.enforceAllowedChildren();
+    if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
+      this.domNode.insertBefore(this.uiNode, this.domNode.firstChild);
+    }
+    if (this.children.length === 0) {
+      if (this.statics.defaultChild != null) {
+        const child = this.scroll.create(this.statics.defaultChild.blotName);
+        this.appendChild(child);
+        // TODO double check if necessary
+        // child.optimize(context);
+      } else {
+        this.remove();
+      }
+    }
+    // Block optimize
+    this.cache = {};
+  }
+}
+ListContainer.blotName = 'list-container';
+ListContainer.tagName = 'OL';
+
+class ListItem extends Block {
+  static create(value) {
+    if (typeof value === 'string') {
+      value = { list: value }
+    }
+
+    const node = super.create(value);
+    CELL_IDENTITY_KEYS
+      .concat(CELL_ATTRIBUTES)
+      .concat(['list'])
+      .forEach(key => {
+        if (value[key]) node.setAttribute(`data-${key}`, value[key])
+      })
+
+    return node;
+  }
+
+  static formats(domNode) {
+    const formats = {}
+
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+      .concat(['list'])
+      .reduce((formats, attribute) => {
+        if (domNode.hasAttribute(`data-${attribute}`)) {
+          formats[attribute] = domNode.getAttribute(`data-${attribute}`) || undefined
+        }
+        return formats
+      }, formats)
+  }
+
+  constructor(scroll, domNode) {
+    super(scroll, domNode);
+    const ui = domNode.ownerDocument.createElement('span');
+    const listEventHandler = e => {
+      if (!scroll.isEnabled()) return;
+      const format = this.statics.formats(domNode, scroll);
+      if (format.list === 'checked') {
+        this.format('list', 'unchecked');
+        e.preventDefault();
+      } else if (format.list === 'unchecked') {
+        this.format('list', 'checked');
+        e.preventDefault();
+      }
+    };
+    ui.addEventListener('mousedown', listEventHandler);
+    ui.addEventListener('touchstart', listEventHandler);
+    this.attachUI(ui);
+  }
+
+  format(name, value) {
+    const { row, cell, rowspan, colspan, list } = ListItem.formats(this.domNode)
+    if (name === ListItem.blotName) {
+      if (value) {
+        super.format(name, {
+          list: value,
+          row, cell, rowspan, colspan
+        })
+      } else {
+        if(row && cell) {
+          this.replaceWith(TableCellLine.blotName, {
+            row,
+            cell,
+            rowspan,
+            colspan
+          })
+        } else {
+          super.format(name, value)
+        }
+      }
+    } else {
+      super.format(name, value)
+    }
+  }
+
+  optimize(context) {
+    const { row, cell, rowspan, colspan } = ListItem.formats(this.domNode)
+
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        row,
+        cell,
+        colspan,
+        rowspan
+      })
+    }
+    super.optimize(context)
+  }
+}
+ListItem.blotName = 'list';
+ListItem.tagName = 'LI';
+
+ListContainer.allowedChildren = [ListItem];
+ListItem.requiredContainer = ListContainer;
+
 TableView.allowedChildren = [TableContainer]
 TableContainer.requiredContainer = TableView
 
@@ -406,7 +584,7 @@ TableRow.requiredContainer = TableBody
 TableRow.allowedChildren = [TableCell]
 TableCell.requiredContainer = TableRow
 
-TableCell.allowedChildren = [TableCellLine]
+TableCell.allowedChildren = [TableCellLine, ListContainer]
 TableCellLine.requiredContainer = TableCell
 
 TableColGroup.allowedChildren = [TableCol]
@@ -439,6 +617,9 @@ export {
   TableBody,
   TableContainer,
   TableView,
+
+  ListItem,
+  ListContainer,
 
   // identity getters
   rowId,

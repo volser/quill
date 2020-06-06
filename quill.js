@@ -10,7 +10,8 @@ import Indent from './formats/indent';
 
 import Blockquote from './formats/blockquote';
 import Header from './formats/header';
-import List from './formats/list';
+// clickup: remove 
+// import List from './modules/clickup-list/list';
 
 import { BackgroundClass, BackgroundStyle } from './formats/background';
 import { ColorClass, ColorStyle } from './formats/color';
@@ -79,7 +80,8 @@ Quill.register(
     'formats/blockquote': Blockquote,
     'formats/code-block': CodeBlock,
     'formats/header': Header,
-    'formats/list': List,
+    // remove quilljs built-in list
+    // 'formats/list': List,
 
     'formats/bold': Bold,
     'formats/code': InlineCode,

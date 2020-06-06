@@ -101,6 +101,8 @@ module.exports = (env, argv) => {
       new webpack.HotModuleReplacementPlugin({})
     ],
 
+    devtool: 'eval-source-map',
+
     devServer:{
       host:'localhost',
       contentBase: path.join(__dirname, '../dist'),
