@@ -411,62 +411,81 @@ Keyboard.DEFAULTS = {
         this.quill.scrollIntoView();
       },
     },
-    'table backspace': {
+    // clickup: remove default keyboard events for table
+    // 'table backspace': {
+    //   key: 'Backspace',
+    //   format: ['table'],
+    //   collapsed: true,
+    //   offset: 0,
+    //   handler() {},
+    // },
+    // 'table delete': {
+    //   key: 'Delete',
+    //   format: ['table'],
+    //   collapsed: true,
+    //   suffix: /^$/,
+    //   handler() {},
+    // },
+    // 'table enter': {
+    //   key: 'Enter',
+    //   shiftKey: null,
+    //   format: ['table'],
+    //   handler(range) {
+    //     const module = this.quill.getModule('table');
+    //     if (module) {
+    //       const [table, row, cell, offset] = module.getTable(range);
+    //       const shift = tableSide(table, row, cell, offset);
+    //       if (shift == null) return;
+    //       let index = table.offset();
+    //       if (shift < 0) {
+    //         const delta = new Delta().retain(index).insert('\n');
+    //         this.quill.updateContents(delta, Quill.sources.USER);
+    //         this.quill.setSelection(
+    //           range.index + 1,
+    //           range.length,
+    //           Quill.sources.SILENT,
+    //         );
+    //       } else if (shift > 0) {
+    //         index += table.length();
+    //         const delta = new Delta().retain(index).insert('\n');
+    //         this.quill.updateContents(delta, Quill.sources.USER);
+    //         this.quill.setSelection(index, Quill.sources.USER);
+    //       }
+    //     }
+    //   },
+    // },
+    // 'table tab': {
+    //   key: 'Tab',
+    //   shiftKey: null,
+    //   format: ['table'],
+    //   handler(range, context) {
+    //     const { event, line: cell } = context;
+    //     const offset = cell.offset(this.quill.scroll);
+    //     if (event.shiftKey) {
+    //       this.quill.setSelection(offset - 1, Quill.sources.USER);
+    //     } else {
+    //       this.quill.setSelection(offset + cell.length(), Quill.sources.USER);
+    //     }
+    //   },
+    // },
+    // clickup: Add customize events for table-cell-line
+    'table-cell-line backspace': {
       key: 'Backspace',
-      format: ['table'],
+      format: ['table-cell-line'],
       collapsed: true,
       offset: 0,
-      handler() {},
-    },
-    'table delete': {
-      key: 'Delete',
-      format: ['table'],
-      collapsed: true,
-      suffix: /^$/,
-      handler() {},
-    },
-    'table enter': {
-      key: 'Enter',
-      shiftKey: null,
-      format: ['table'],
-      handler(range) {
-        const module = this.quill.getModule('table');
-        if (module) {
-          const [table, row, cell, offset] = module.getTable(range);
-          const shift = tableSide(table, row, cell, offset);
-          if (shift == null) return;
-          let index = table.offset();
-          if (shift < 0) {
-            const delta = new Delta().retain(index).insert('\n');
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(
-              range.index + 1,
-              range.length,
-              Quill.sources.SILENT,
-            );
-          } else if (shift > 0) {
-            index += table.length();
-            const delta = new Delta().retain(index).insert('\n');
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(index, Quill.sources.USER);
-          }
-        }
-      },
-    },
-    'table tab': {
-      key: 'Tab',
-      shiftKey: null,
-      format: ['table'],
       handler(range, context) {
-        const { event, line: cell } = context;
-        const offset = cell.offset(this.quill.scroll);
-        if (event.shiftKey) {
-          this.quill.setSelection(offset - 1, Quill.sources.USER);
-        } else {
-          this.quill.setSelection(offset + cell.length(), Quill.sources.USER);
+        const [line, offset] = this.quill.getLine(range.index)
+        if (
+          line.prev &&
+          ['table-cell-line', 'list', 'list-container'].indexOf(line.prev.statics.blotName) >= 0
+        ) {
+          return true
         }
+        return false
       },
     },
+
     'list autofill': {
       key: ' ',
       shiftKey: null,
