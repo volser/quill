@@ -11,6 +11,9 @@ const debug = logger('quill:keyboard');
 
 const SHORTKEY = /Mac/i.test(navigator.platform) ? 'metaKey' : 'ctrlKey';
 
+// clickup: define tableCellAllowedBlotName
+const tableCellAllowedBlotName = ['table-cell-line', 'list', 'list-container']
+
 class Keyboard extends Module {
   static match(evt, binding) {
     if (
@@ -183,17 +186,25 @@ class Keyboard extends Module {
   }
 
   handleBackspace(range, context) {
+    // clickup: prevent user use backspace to delete table
+    const [line] = this.quill.getLine(range.index);
+    const [prev] = this.quill.getLine(range.index - 1);
+
+    if (context.offset === 0 && prev != null) {
+      if (tableCellAllowedBlotName.indexOf(prev.statics.blotName) >= 0 &&
+        tableCellAllowedBlotName.indexOf(line.statics.blotName) < 0
+      ) return false
+    }
+
     // Check for astral symbols
     const length = /[\uD800-\uDBFF][\uDC00-\uDFFF]$/.test(context.prefix)
       ? 2
       : 1;
     if (range.index === 0 || this.quill.getLength() <= 1) return;
     let formats = {};
-    const [line] = this.quill.getLine(range.index);
     let delta = new Delta().retain(range.index - length).delete(length);
     if (context.offset === 0) {
       // Always deleting newline here, length always 1
-      const [prev] = this.quill.getLine(range.index - 1);
       if (prev) {
         const curFormats = line.formats();
         const prevFormats = this.quill.getFormat(range.index - 1, 1);
