@@ -497,6 +497,14 @@ Keyboard.DEFAULTS = {
       },
     },
 
+    'table-cell-line delete': {
+      key: 'Delete',
+      format: ['table-cell-line'],
+      collapsed: true,
+      suffix: /^$/,
+      handler() {},
+    },
+
     'list autofill': {
       key: ' ',
       shiftKey: null,
