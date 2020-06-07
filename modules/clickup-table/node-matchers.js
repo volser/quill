@@ -67,20 +67,29 @@ export function matchTableCell(node, delta, scroll) {
 
   return delta.reduce((newDelta, op) => {
     if (op.insert && typeof op.insert === 'string' &&
-      op.insert.startsWith('\n')) {
+      op.insert.startsWith('\n')
+    ) {
+      let blotAttributes = op.attributes.list
+        ? { 'list': { row: rowId, cell: cellId, rowspan, colspan, ...op.attributes.list } }
+        : { 'table-cell-line': { row: rowId, cell: cellId, rowspan, colspan } }
+
       newDelta.insert(op.insert, Object.assign(
         {},
-        Object.assign({}, { row: rowId }, op.attributes.table),
-        { 'table-cell-line': { row: rowId, cell: cellId, rowspan, colspan } },
-        _omit(op.attributes, ['table'])
+        Object.assign(
+          {},
+          { row: rowId },
+          op.attributes.table
+        ),
+        blotAttributes,
+        _omit(op.attributes, ['table', 'list-container', 'list'])
       ))
     } else {
       newDelta.insert(op.insert, Object.assign(
         {},
-        _omit(op.attributes, ['table', 'table-cell-line'])
+        _omit(op.attributes, ['table', 'table-cell-line', 'list-container', 'list'])
       ))
     }
-    
+
     return newDelta
   }, new Delta())
 }
@@ -202,5 +211,3 @@ export function matchTable(node, delta, scroll) {
     }, new Delta())
   }
 }
-
-

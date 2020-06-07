@@ -400,6 +400,7 @@ TableView.blotName = "table-view"
 TableView.className = "clickup-table-view"
 TableView.tagName = "DIV"
 
+// Blots of List
 class ListContainer extends Container {
   static create(value) {
     const node = super.create(value)

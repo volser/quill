@@ -20,6 +20,8 @@ import { ColorStyle } from '../formats/color';
 import { DirectionAttribute, DirectionStyle } from '../formats/direction';
 import { FontStyle } from '../formats/font';
 import { SizeStyle } from '../formats/size';
+// clickup: utils
+import { _omit } from './clickup-table/utils'
 
 const debug = logger('quill:clipboard');
 
@@ -430,9 +432,27 @@ function matchIndent(node, delta, scroll) {
   }, new Delta());
 }
 
+// clickup: modify the matcher of list
 function matchList(node, delta) {
   const list = node.tagName === 'OL' ? 'ordered' : 'bullet';
-  return applyFormat(delta, 'list', list);
+  const formatted = applyFormat(delta, 'list', list);
+  return formatted.reduce((newDelta, op) => {
+    if (op.attributes && op.attributes['list']) {
+      newDelta.insert(
+        op.insert,
+        Object.assign(
+          {},
+          op.attributes,
+          {
+            list: { list }
+          }
+        )
+      )
+    } else {
+      newDelta.push(op)
+    }
+    return newDelta
+  }, new Delta())
 }
 
 function matchNewline(node, delta, scroll) {
