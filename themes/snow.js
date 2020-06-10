@@ -1,4 +1,4 @@
-import merge from 'lodash.merge';
+import extend from 'extend';
 import Emitter from '../core/emitter';
 import BaseTheme, { BaseTooltip } from './base';
 import LinkBlot from '../formats/link';
@@ -103,7 +103,7 @@ class SnowTheme extends BaseTheme {
     }
   }
 }
-SnowTheme.DEFAULTS = merge({}, BaseTheme.DEFAULTS, {
+SnowTheme.DEFAULTS = extend(true, {}, BaseTheme.DEFAULTS, {
   modules: {
     toolbar: {
       handlers: {

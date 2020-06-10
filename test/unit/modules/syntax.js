@@ -294,12 +294,4 @@ describe('Syntax', function() {
       });
     });
   });
-
-  describe('html', function() {
-    it('code language', function() {
-      expect(this.quill.getSemanticHTML()).toContain(
-        'data-language="javascript"',
-      );
-    });
-  });
 });

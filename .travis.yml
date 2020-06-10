@@ -1,19 +1,15 @@
 language: node_js
-node_js: '10'
+node_js: '8.9'
 script:
   - npm run build
   - travis_retry npm run travis
-os:
-  - linux
-dist: xenial
+sudo: false
+dist: trusty
 cache:
   directories:
-    - dist
     - node_modules
 env:
-  global:
-    - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-  jobs:
+  matrix:
     - BROWSER=mac-chrome-latest
     - BROWSER=mac-firefox-latest
     - BROWSER=mac-safari-latest
@@ -22,6 +18,3 @@ env:
     - BROWSER=windows-edge-latest
     - BROWSER=ios-latest
     - BROWSER=android-latest
-jobs:
-  allow_failures:
-    - env: BROWSER=android-latest

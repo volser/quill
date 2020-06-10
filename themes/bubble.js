@@ -1,4 +1,4 @@
-import merge from 'lodash.merge';
+import extend from 'extend';
 import Emitter from '../core/emitter';
 import BaseTheme, { BaseTooltip } from './base';
 import { Range } from '../core/selection';
@@ -107,7 +107,7 @@ class BubbleTheme extends BaseTheme {
     this.buildPickers(toolbar.container.querySelectorAll('select'), icons);
   }
 }
-BubbleTheme.DEFAULTS = merge({}, BaseTheme.DEFAULTS, {
+BubbleTheme.DEFAULTS = extend(true, {}, BaseTheme.DEFAULTS, {
   modules: {
     toolbar: {
       handlers: {

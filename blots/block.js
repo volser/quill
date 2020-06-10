@@ -1,3 +1,4 @@
+import extend from 'extend';
 import Delta from 'quill-delta';
 import {
   AttributorStore,
@@ -134,10 +135,10 @@ class BlockEmbed extends EmbedBlot {
   }
 
   delta() {
-    return new Delta().insert(this.value(), {
-      ...this.formats(),
-      ...this.attributes.values(),
-    });
+    return new Delta().insert(
+      this.value(),
+      extend(this.formats(), this.attributes.values()),
+    );
   }
 
   format(name, value) {
@@ -179,10 +180,7 @@ function blockDelta(blot, filter = true) {
 function bubbleFormats(blot, formats = {}, filter = true) {
   if (blot == null) return formats;
   if (typeof blot.formats === 'function') {
-    formats = {
-      ...formats,
-      ...blot.formats(),
-    };
+    formats = extend(formats, blot.formats());
     if (filter) {
       // exclude syntax highlighting from deltas and getFormat()
       delete formats['code-token'];
