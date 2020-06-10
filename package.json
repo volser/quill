@@ -40,8 +40,6 @@
     "quill-delta": "4.2.2"
   },
   "devDependencies": {
-    "file-loader": "^6.0.0",
-    "html-webpack-plugin": "^4.3.0",
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
     "babel-loader": "^8.1.0",
@@ -58,6 +56,7 @@
     "eslint-plugin-react-hooks": "^3.0.0",
     "highlight.js": "^9.18.1",
     "html-loader": "~1.1.0",
+    "html-webpack-plugin": "^4.3.0",
     "http-proxy": "^1.18.0",
     "jasmine": "^3.5.0",
     "jasmine-core": "^3.5.0",
