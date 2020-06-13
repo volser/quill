@@ -22,6 +22,9 @@ import {
   matchTable
 } from './node-matchers'
 
+import { getEventComposedPath } from '../clickup-table-control/utils'
+import TableColumnTool from '../clickup-table-control/clickup-table-column-tool'
+
 class Table extends Module {
   static register() {
     Quill.register(TableCol, true);
@@ -41,9 +44,43 @@ class Table extends Module {
   constructor(quill, options) {
     super(quill, options);
 
+    this.quill.root.addEventListener('click', (evt) => {
+      const path = getEventComposedPath(evt)
+
+      if (!path || path.length <= 0) return
+
+      const tableNode = path.filter(node => {
+        return node.tagName &&
+          node.tagName.toUpperCase() === 'TABLE' &&
+          node.classList.contains('clickup-table')
+      })[0]
+
+      if (tableNode) {
+        // current table clicked
+        if (this.table === tableNode) return
+        // other table clicked
+        if (this.table) this.hideTableTools()
+        this.showTableTools(tableNode, quill, options)
+      } else if (this.table) {
+        // other clicked
+        this.hideTableTools()
+      }
+    }, false)
+
     quill.clipboard.addMatcher('td', matchTableCell)
     quill.clipboard.addMatcher('th', matchTableHeader)
     quill.clipboard.addMatcher('table', matchTable)
+  }
+
+  showTableTools (table, quill, options) {
+    this.table = table
+    this.columnTool = new TableColumnTool(table, quill, options)
+  }
+
+  hideTableTools () {
+    this.columnTool && this.columnTool.destroy()
+    this.columnTool = null
+    this.table = null
   }
 
   deleteTable() {

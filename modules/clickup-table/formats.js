@@ -370,6 +370,52 @@ class TableContainer extends Container {
     if (body == null) return []
     return body.children.map(row => row)
   }
+
+  insertColumn(index, isRight = true) {
+    const [body] = this.descendants(TableBody)
+    const [colGroup] = this.descendants(TableColGroup)
+    if (body == null || body.children.head == null ||
+      colGroup == null) return;
+    // insert tableCol at first
+    const tableCol = this.scroll.create(TableCol.blotName, true)
+    const thisCol = colGroup.children.at(index)
+    const refCol = isRight ? thisCol.next : thisCol
+    if (refCol) {
+      colGroup.insertBefore(tableCol, refCol)
+    } else {
+      colGroup.appendChild(tableCol)
+    }
+
+
+    body.children.forEach(tableRow => {
+      const { row } = tableRow.formats()
+      const thisCell = tableRow.children.at(index)
+      const ref = isRight ? thisCell.next : thisCell
+
+      const tableCell = this.scroll.create(
+        TableCell.blotName,
+        Object.assign({}, CELL_DEFAULT, {
+          row
+        })
+      )
+      const cellLine = this.scroll.create(
+        TableCellLine.blotName,
+        Object.assign({}, CELL_DEFAULT, {
+          row,
+          cell: cellId()
+        })
+      )
+      tableCell.appendChild(cellLine)
+
+      if (ref) {
+        tableRow.insertBefore(tableCell, ref)
+      } else {
+        tableRow.appendChild(tableCell)
+      }
+    })
+
+    this.updateTableWidth()
+  }
 }
 TableContainer.blotName = "table-container"
 TableContainer.className = "clickup-table"
@@ -380,14 +426,9 @@ class TableView extends Container {
     super(scroll, domNode)
     const quill = Quill.find(scroll.domNode.parentNode)
     domNode.addEventListener('scroll', (e) => {
-      const tableModule = quill.getModule('better-table')
+      const tableModule = quill.getModule('table')
       if (tableModule.columnTool) {
         tableModule.columnTool.domNode.scrollLeft = e.target.scrollLeft
-      }
-
-      if (tableModule.tableSelection &&
-        tableModule.tableSelection.selectedTds.length > 0) {
-        tableModule.tableSelection.repositionHelpLines()
       }
     }, false)
   }
