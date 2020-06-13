@@ -1,19 +1,19 @@
 import Quill from '../../quill'
 import { css, getEventComposedPath } from './utils'
+import Dropdown from './clickup-table-column-dropdown'
 
 const COL_TOOL_HEIGHT = 32
 const COL_TOOL_ADD_BUTTON_HEIGHT = 20
-const COL_TOOL_CELL_HEIGHT = 12
-const ROW_TOOL_WIDTH = 12
 const CELL_MIN_WIDTH = 100
 const PRIMARY_COLOR = '#35A7ED'
+const COL_TOOL_CELL_HEIGHT = 12
 
 export default class TableColumnControl {
   constructor (table, quill, options) {
     if (!table) return null
     this.table = table
     this.quill = quill
-    this.options = options
+    this.options = options || {}
     this.domNode = null
 
     this.initColTool()
@@ -86,6 +86,7 @@ export default class TableColumnControl {
         this.domNode.appendChild(toolCell)
         this.addColCellHolderHandler(toolCell)
         this.addInertColumnButtonHanler(toolCell)
+        this.addDropdownIconHandler(toolCell)
         // set tool cell min-width
         css(toolCell, {
           'min-width': `${colWidth}px`
@@ -105,6 +106,19 @@ export default class TableColumnControl {
   destroy () {
     this.domNode.remove()
     return null
+  }
+
+  addDropdownIconHandler(cell) {
+    const $dropdownIcon = cell.querySelector('.cu-col-tool-cell-dropdown-icon')
+    const index = [].indexOf.call(this.domNode.childNodes, cell)
+
+    $dropdownIcon.addEventListener('click', () => {
+      const dropdown = new Dropdown(
+        this,
+        cell,
+        index
+      )
+    }, false)
   }
 
   addInertColumnButtonHanler(cell) {

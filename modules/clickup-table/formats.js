@@ -418,6 +418,20 @@ class TableContainer extends Container {
     this.updateTableWidth()
   }
 
+  deleteColumn(index) {
+    const [body] = this.descendants(TableBody)
+    const [colGroup] = this.descendants(TableColGroup)
+    if (colGroup.children.length === 1) {
+      this.remove()
+    } else {
+      colGroup.children.at(index).remove()
+      body.children.forEach(tableRow => {
+        tableRow.children.at(index).remove()
+      })
+      this.updateTableWidth()
+    }
+  }
+
   insertRow(index, isBottom) {
     const [tableBody] = this.descendants(TableBody)
     const thisRow = tableBody.children.at(index)
@@ -447,7 +461,7 @@ class TableContainer extends Container {
         })
       )
       empty = this.scroll.create(Break.blotName)
-      
+
       cellLine.appendChild(empty)
       tableCell.appendChild(cellLine)
       tableRow.appendChild(tableCell)
