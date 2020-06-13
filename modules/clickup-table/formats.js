@@ -2,6 +2,7 @@ import Quill from "../../core/quill"
 
 const Block = Quill.import("blots/block")
 const Container = Quill.import("blots/container")
+const Break = Quill.import("blots/break")
 
 const COL_ATTRIBUTES = ["width"]
 const COL_DEFAULT = {
@@ -415,6 +416,48 @@ class TableContainer extends Container {
     })
 
     this.updateTableWidth()
+  }
+
+  insertRow(index, isBottom) {
+    const [tableBody] = this.descendants(TableBody)
+    const thisRow = tableBody.children.at(index)
+    const cellNumber = thisRow.children.length
+    const ref = isBottom ? thisRow.next : thisRow
+    const newRowId = rowId()
+
+    const tableRow = this.scroll.create(TableRow.blotName, {
+      row: newRowId
+    })
+
+    let tableCell
+    let cellLine
+    let empty
+    new Array(cellNumber).fill(0).forEach(() => {
+      tableCell = this.scroll.create(
+        TableCell.blotName,
+        Object.assign({}, CELL_DEFAULT, {
+          row: newRowId
+        })
+      )
+      cellLine = this.scroll.create(
+        TableCellLine.blotName,
+        Object.assign({}, CELL_DEFAULT, {
+          row: newRowId,
+          cell: cellId()
+        })
+      )
+      empty = this.scroll.create(Break.blotName)
+      
+      cellLine.appendChild(empty)
+      tableCell.appendChild(cellLine)
+      tableRow.appendChild(tableCell)
+    })
+
+    if (ref) {
+      tableBody.insertBefore(tableRow, ref)
+    } else {
+      tableBody.appendChild(tableRow)
+    }
   }
 }
 TableContainer.blotName = "table-container"

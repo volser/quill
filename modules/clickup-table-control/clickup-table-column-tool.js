@@ -8,7 +8,7 @@ const ROW_TOOL_WIDTH = 12
 const CELL_MIN_WIDTH = 100
 const PRIMARY_COLOR = '#35A7ED'
 
-export default class TableControl {
+export default class TableColumnControl {
   constructor (table, quill, options) {
     if (!table) return null
     this.table = table
@@ -82,7 +82,7 @@ export default class TableControl {
       // if cell already exist
       let toolCell = null
       if (!existCells[index]) {
-        toolCell = this.createToolCell(index === 0)
+        toolCell = this.createToolCell()
         this.domNode.appendChild(toolCell)
         this.addColCellHolderHandler(toolCell)
         this.addInertColumnButtonHanler(toolCell)

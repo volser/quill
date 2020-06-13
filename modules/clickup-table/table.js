@@ -24,6 +24,7 @@ import {
 
 import { getEventComposedPath } from '../clickup-table-control/utils'
 import TableColumnTool from '../clickup-table-control/clickup-table-column-tool'
+import TableRowTool from '../clickup-table-control/clickup-table-row-tool'
 
 class Table extends Module {
   static register() {
@@ -42,7 +43,18 @@ class Table extends Module {
   }
 
   constructor(quill, options) {
-    super(quill, options);
+    super(quill, options)
+
+    this.quill.on("text-change", range => {
+      if (this.rowTool && this.table) {
+        let tableRect = this.rowTool.table.getBoundingClientRect()
+        let rowToolRect = this.rowTool.domNode.getBoundingClientRect()
+        let delta = tableRect.height - rowToolRect.height
+        if (delta > 4 || delta < -4) {
+          window.setTimeout(this.rowTool.updateToolCells(), 0)
+        }
+      }
+    })
 
     this.quill.root.addEventListener('click', (evt) => {
       const path = getEventComposedPath(evt)
@@ -75,11 +87,14 @@ class Table extends Module {
   showTableTools (table, quill, options) {
     this.table = table
     this.columnTool = new TableColumnTool(table, quill, options)
+    this.rowTool = new TableRowTool(table, quill, options)
   }
 
   hideTableTools () {
     this.columnTool && this.columnTool.destroy()
+    this.rowTool && this.rowTool.destroy()
     this.columnTool = null
+    this.rowTool = null
     this.table = null
   }
 
