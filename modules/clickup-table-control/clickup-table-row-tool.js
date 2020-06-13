@@ -1,6 +1,7 @@
 import Quill from '../../quill'
-import { css, getEventComposedPath } from './utils'
+import { css } from './utils'
 import { TableBody } from '../clickup-table/formats'
+import IconManager from './clickup-icon-manager'
 
 const ROW_TOOL_ADD_BUTTON_WIDTH = 12
 const COL_TOOL_CELL_HEIGHT = 12
@@ -15,6 +16,7 @@ export default class TableRowControl {
     this.quill = quill
     this.options = options
     this.domNode = null
+    this.iconManager = new IconManager()
 
     this.initRowTool()
   }
@@ -54,14 +56,19 @@ export default class TableRowControl {
     insertRowBottomButton.innerHTML = '+'
     toolCell.appendChild(insertRowBottomButton)
 
-    const dropdownIcon = document.createElement('div')
-    dropdownIcon.classList.add('cu-row-tool-cell-dropdown-icon')
-    new Array(3).fill(0).forEach(() => {
-      const dot = document.createElement('span')
-      dot.classList.add('cu-row-tool-cell-dropdown-icon-dot')
-      dropdownIcon.appendChild(dot)
-    })
-    toolCell.appendChild(dropdownIcon)
+    const deleteRowButton = document.createElement('div')
+    deleteRowButton.classList.add('cu-row-tool-cell-delete-row')
+    deleteRowButton.innerHTML = this.iconManager.getSvgIcon('deleteSmall')
+    toolCell.appendChild(deleteRowButton)
+
+    // const dropdownIcon = document.createElement('div')
+    // dropdownIcon.classList.add('cu-row-tool-cell-dropdown-icon')
+    // new Array(3).fill(0).forEach(() => {
+    //   const dot = document.createElement('span')
+    //   dot.classList.add('cu-row-tool-cell-dropdown-icon-dot')
+    //   dropdownIcon.appendChild(dot)
+    // })
+    // toolCell.appendChild(dropdownIcon)
 
     return toolCell
   }
@@ -74,15 +81,18 @@ export default class TableRowControl {
     let existCells = Array.from(this.domNode.querySelectorAll('.cu-row-tool-cell'))
 
     for (let index = 0; index < Math.max(cellsNumber, existCells.length); index++) {
-      let row = tableRows.at(index)
-      let rowHeight = row.domNode.getBoundingClientRect().height
+      let row
+      let rowHeight
       // if cell already exist
       let toolCell = null
       if (!existCells[index]) {
+        row = tableRows.at(index)
+        rowHeight = row.domNode.getBoundingClientRect().height
         toolCell = this.createToolCell()
         this.domNode.appendChild(toolCell)
         this.addInertRowButtonHanler(toolCell)
-        // set tool cell min-width
+        this.addDeleteRowButtonHanler(toolCell)
+        // set tool cell min-height
         css(toolCell, {
           'min-height': `${rowHeight}px`
         })
@@ -90,7 +100,9 @@ export default class TableRowControl {
         existCells[index].remove()
       } else {
         toolCell = existCells[index]
-        // set tool cell min-width
+        row = tableRows.at(index)
+        rowHeight = row.domNode.getBoundingClientRect().height
+        // set tool cell min-height
         css(toolCell, {
           'min-height': `${rowHeight}px`
         })
@@ -105,6 +117,24 @@ export default class TableRowControl {
   destroy () {
     this.domNode.remove()
     return null
+  }
+
+  addDeleteRowButtonHanler(cell) {
+    const tableContainer = Quill.find(this.table)
+    const $buttonDel = cell.querySelector('.cu-row-tool-cell-delete-row')
+    const [tableBody] = tableContainer.descendants(TableBody)
+    const tableModule = this.quill.getModule('table')
+    $buttonDel.addEventListener('click', () => {
+      const index = [].indexOf.call(this.domNode.childNodes, cell)
+
+      if (tableBody.children.length === 1) {
+        tableContainer.remove()
+        tableModule.hideTableTools()
+      } else {
+        tableContainer.deleteRow(index)
+        this.updateToolCells()
+      }
+    }, false)
   }
 
   addInertRowButtonHanler(cell) {

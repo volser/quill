@@ -473,6 +473,15 @@ class TableContainer extends Container {
       tableBody.appendChild(tableRow)
     }
   }
+
+  deleteRow(index) {
+    const [body] = this.descendants(TableBody)
+    if (body.children.length === 1) {
+      this.remove()
+    } else {
+      body.children.at(index).remove()
+    }
+  }
 }
 TableContainer.blotName = "table-container"
 TableContainer.className = "clickup-table"

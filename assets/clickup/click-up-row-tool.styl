@@ -19,7 +19,8 @@
       background-color: #e6e6e6
 
       .cu-row-tool-cell-add-row-top,
-      .cu-row-tool-cell-add-row-bottom
+      .cu-row-tool-cell-add-row-bottom,
+      .cu-row-tool-cell-delete-row
         opacity: 1
         z-index: 10
 
@@ -71,5 +72,30 @@
       margin-bottom: 2px
       border-radius: 100%
       background-color: #aaa
+  
+  .cu-row-tool-cell-delete-row
+    position absolute
+    top: 50%
+    left: -12px
+    width: 12px
+    height: 12px
+    border-radius: 2px
+    font-size: 12px
+    color: #e6e6e6
+    z-index: 1
+    font-weight: 100
+    opacity: 0
+    cursor: pointer
+    transform: translateY(-50%)
+
+    svg
+      fill: #e6e6e6
+
+    &:hover
+      background-color: #516cf0
+      
+      svg
+        fill: #fff
+    
 
 
