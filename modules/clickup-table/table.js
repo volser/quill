@@ -25,6 +25,7 @@ import {
 import { getEventComposedPath } from '../clickup-table-control/utils'
 import TableColumnTool from '../clickup-table-control/clickup-table-column-tool'
 import TableRowTool from '../clickup-table-control/clickup-table-row-tool'
+import TableTableTool from '../clickup-table-control/clickup-table-table-tool'
 
 class Table extends Module {
   static register() {
@@ -88,13 +89,16 @@ class Table extends Module {
     this.table = table
     this.columnTool = new TableColumnTool(table, quill, options)
     this.rowTool = new TableRowTool(table, quill, options)
+    this.tableTool = new TableTableTool(table, quill, options)
   }
 
   hideTableTools () {
     this.columnTool && this.columnTool.destroy()
     this.rowTool && this.rowTool.destroy()
+    this.tableTool && this.tableTool.destroy()
     this.columnTool = null
     this.rowTool = null
+    this.tableTool = null
     this.table = null
   }
 

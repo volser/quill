@@ -211,8 +211,4 @@ export default class TableRowControl {
       $helpLine = null
     })
   }
-
-  colToolCells () {
-    return Array.from(this.domNode.querySelectorAll('.cu-col-tool-cell'))
-  }
 }
