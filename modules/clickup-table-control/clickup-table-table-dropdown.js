@@ -54,6 +54,7 @@ export default class TableTableDropdown {
   }
 
   destroy() {
+    this.tool.setCellToInActive()
     document.body.removeEventListener('click', this.destroyHandler, false)
     this.domNode.remove()
   }

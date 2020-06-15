@@ -12,6 +12,8 @@ export default class TableRowControl {
     this.quill = quill
     this.options = options
     this.domNode = null
+    this.activeDropdown = null
+    this.helpRect = null
     this.iconManager = new IconManager()
 
     this.initTableTool()
@@ -32,9 +34,35 @@ export default class TableRowControl {
       top: `${tableViewRect.top - containerRect.top - TableToolSize + parent.scrollTop}px`
     })
 
-    this.domNode.addEventListener('click', () => {
-      const dropdown = new Dropdown(this)
+    this.domNode.addEventListener('click', e => {
+      const tableModule = this.quill.getModule('table')
+      tableModule.closeToolsDropdown()
+
+      this.activeDropdown = new Dropdown(this)
+      this.setCellToActive()
     }, false)
+  }
+
+  setCellToActive() {
+    this.domNode.classList.add('active')
+    const tableViewRect = this.table.parentNode.getBoundingClientRect()
+    const tableRect = this.table.getBoundingClientRect()
+    this.helpRect = document.createElement('div')
+    this.helpRect.classList.add('cu-help-rect')
+    css(this.helpRect, {
+      position: 'fixed',
+      width: `${Math.min(tableRect.width, tableViewRect.width)}px`,
+      height: `${tableViewRect.height}px`,
+      top: `${tableViewRect.top}px`,
+      left: `${tableViewRect.left}px`
+    })
+    document.body.appendChild(this.helpRect)
+  }
+
+  setCellToInActive() {
+    this.domNode.classList.remove('active')
+    this.helpRect && this.helpRect.remove()
+    this.helpRect = null
   }
 
   destroy () {

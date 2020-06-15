@@ -102,6 +102,11 @@ class Table extends Module {
     this.table = null
   }
 
+  closeToolsDropdown() {
+    this.columnTool && this.columnTool.activeDropdown && this.columnTool.activeDropdown.destroy()
+    this.tableTool && this.tableTool.activeDropdown && this.tableTool.activeDropdown.destroy()
+  }
+
   deleteTable() {
     const [table] = this.getTable();
     if (table == null) return;

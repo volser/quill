@@ -15,6 +15,8 @@ export default class TableColumnControl {
     this.quill = quill
     this.options = options || {}
     this.domNode = null
+    this.activeDropdown = null
+    this.helpRect = null
 
     this.initColTool()
   }
@@ -111,14 +113,41 @@ export default class TableColumnControl {
   addDropdownIconHandler(cell) {
     const $dropdownIcon = cell.querySelector('.cu-col-tool-cell-dropdown-icon')
     const index = [].indexOf.call(this.domNode.childNodes, cell)
+    
 
-    $dropdownIcon.addEventListener('click', () => {
-      const dropdown = new Dropdown(
+    $dropdownIcon.addEventListener('click', e => {
+      e.stopPropagation()
+      const tableModule = this.quill.getModule('table')
+      tableModule.closeToolsDropdown()
+      this.activeDropdown = new Dropdown(
         this,
         cell,
         index
       )
+      this.setCellToActive(cell)
     }, false)
+  }
+
+  setCellToActive(cell) {
+    cell.classList.add('active')
+    const cellRect = cell.getBoundingClientRect()
+    const tableViewRect = this.table.parentNode.getBoundingClientRect()
+    this.helpRect = document.createElement('div')
+    this.helpRect.classList.add('cu-help-rect')
+    css(this.helpRect, {
+      position: 'fixed',
+      width: `${cellRect.width}px`,
+      height: `${tableViewRect.height}px`,
+      top: `${tableViewRect.top}px`,
+      left: `${cellRect.left}px`
+    })
+    document.body.appendChild(this.helpRect)
+  }
+
+  setCellToInActive(cell) {
+    cell.classList.remove('active')
+    this.helpRect && this.helpRect.remove()
+    this.helpRect = null
   }
 
   addInertColumnButtonHanler(cell) {
