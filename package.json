@@ -153,6 +153,7 @@
   "scripts": {
     "dev:demo": "webpack-dev-server --config dev_clickup/webpack.config.js --mode=development",
     "build:demo": "webpack --config dev_clickup/webpack.config.js --mode=development",
+    "buildWithoutLint": "npm run build:webpack",
     "build": "npm run lint && npm run build:webpack",
     "build:webpack": "npx webpack --config _develop/webpack.config.js && rm dist/quill.core dist/quill.bubble dist/quill.snow",
     "build:release": "./_develop/scripts/release.sh",

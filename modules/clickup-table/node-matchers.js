@@ -1,4 +1,4 @@
-import Quill from 'root/quill'
+import Quill from '../../quill'
 import Delta from 'quill-delta'
 import { _omit } from './utils'
 import {
