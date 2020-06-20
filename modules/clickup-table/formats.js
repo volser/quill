@@ -358,6 +358,13 @@ class TableContainer extends Container {
     }, 0)
   }
 
+  remove() {
+    const quill = Quill.find(this.scroll.domNode.parentNode)
+    const tableModule = quill.getModule('table')
+    tableModule.hideTableTools()
+    super.remove()
+  }
+
   cells(column) {
     return this.rows().map(row => row.children.at(column))
   }
