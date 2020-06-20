@@ -21,6 +21,7 @@ export function _omit (obj, uselessKeys) {
 }
 
 // compatible with old native table delta in quilljs
+// compatible with old native list delta in quilljs
 export function tableDeltaParser(oldDelta) {
   let delta = new Delta()
   const tokens = scanTableColumnTokens(oldDelta)
@@ -85,6 +86,13 @@ export function tableDeltaParser(oldDelta) {
             newDelta.insert(str, _omit(op.attributes, ['table']))
           }
         })
+      } else if (op.attributes &&
+        op.attributes.list) {
+        newDelta.insert(op.insert, Object.assign(
+          {},
+          op.attributes,
+          { list: { list: op.attributes.list } }
+        ))
       } else {
         const count = op.insert.split('').filter(char => char === '\n').length
         new Array(count).fill(0).forEach(() => {

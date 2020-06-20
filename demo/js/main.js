@@ -8,16 +8,6 @@ import { tableDeltaParser } from '../../modules/clickup-table/utils'
 const oldTableDelta = new Delta({
   "ops":[
     {"insert":"234\n3243\n"},
-    {"insert":"1\n2\n3\n","attributes":{"table":"row-z2be"}},
-    {"attributes":{"table":"row-xdoa"},"insert":"4\n5\n6\n"},
-    {"attributes":{"table":"row-5eyr"},"insert":"1\n2\n3\n"},
-    {"insert":"\n"}
-  ]
-})
-
-const oldTableDelta2 = new Delta({
-  "ops":[
-    {"insert":"234\n3243\n"},
     {"insert":"234\n234234\n","attributes":{"table":"row-z2be"}},
     {"insert":{image: "http://img3.imgtn.bdimg.com/it/u=1267761530,2716523653&fm=26&gp=0.jpg"}},
     {"insert":"234"},
@@ -25,6 +15,21 @@ const oldTableDelta2 = new Delta({
     {"attributes":{"table":"row-xdoa"},"insert":"234\n234234\n234234\n"},
     {"attributes":{"table":"row-5eyr"},"insert":"23423\n234234\n234234\n"},
     {"insert":"\n"}
+  ]
+})
+
+const oldListDelta = new Delta({
+  "ops": [
+    {insert: "sdsdfsdfsdf\nsdfdsfsf"},
+    {attributes: { list: "ordered" }, insert: "\n"},
+    {insert: "34324234234"},
+    {attributes: { list: "ordered" }, insert: "\n"},
+    {insert: "234324234"},
+    {attributes: { list: "ordered" }, insert: "\n"},
+    {insert: "234234234"},
+    {attributes: { list: "ordered" }, insert: "\n"},
+    {insert: "234234234234"},
+    {attributes: { list: "ordered" }, insert: "\n"}
   ]
 })
 
@@ -37,7 +42,7 @@ window.onload = () => {
   })
 
   // test parse old table delta to new
-  // quill.setContents(tableDeltaParser(oldTableDelta))
+  // quill.setContents(tableDeltaParser(oldListDelta))
 
   const tableModule = quill.getModule('table')
 
