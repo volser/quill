@@ -349,6 +349,8 @@ Keyboard.DEFAULTS = {
     tab: {
       key: 'Tab',
       handler(range, context) {
+        // clickup: return true if the cursor is in a table cell line
+        if (context.format['table-cell-line']) return true
         if (context.format.table) return true;
         this.quill.history.cutoff();
         const delta = new Delta()
@@ -503,6 +505,26 @@ Keyboard.DEFAULTS = {
       collapsed: true,
       suffix: /^$/,
       handler() {},
+    },
+
+    'table-cell-line tab': {
+      key: 'Tab',
+      shiftKey: null,
+      collapsed: true,
+      format: ['table-cell-line'],
+      handler(range, context) {
+        const { event, line: cellLine } = context;
+        const offset = cellLine.offset(this.quill.scroll);
+        event.preventDefault()
+
+        if (event.shiftKey) {
+          this.quill.setSelection(offset - 1, Quill.sources.USER);
+        } else {
+          const tableCell = cellLine.parent
+          this.quill.setSelection(offset + tableCell.length(), Quill.sources.USER);
+        }
+        return false
+      },
     },
 
     'list autofill': {
