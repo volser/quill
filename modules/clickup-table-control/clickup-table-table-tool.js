@@ -5,12 +5,12 @@ import Dropdown from './clickup-table-table-dropdown'
 
 export const TableToolSize = 12
 
-export default class TableRowControl {
+export default class TableTableControl {
   constructor (table, quill, options) {
     if (!table) return null
     this.table = table
     this.quill = quill
-    this.options = options
+    this.options = options.tableTools || {}
     this.domNode = null
     this.activeDropdown = null
     this.helpRect = null
@@ -31,7 +31,8 @@ export default class TableRowControl {
       width: `${TableToolSize}px`,
       height: `${TableToolSize}px`,
       left: `${tableViewRect.left - containerRect.left + parent.scrollLeft - TableToolSize}px`,
-      top: `${tableViewRect.top - containerRect.top - TableToolSize + parent.scrollTop}px`
+      top: `${tableViewRect.top - containerRect.top - TableToolSize + parent.scrollTop}px`,
+      zIndex: `${this.options.zIndex || 100}`
     })
 
     this.domNode.addEventListener('click', e => {
@@ -54,7 +55,8 @@ export default class TableRowControl {
       width: `${Math.min(tableRect.width, tableViewRect.width)}px`,
       height: `${tableViewRect.height}px`,
       top: `${tableViewRect.top}px`,
-      left: `${tableViewRect.left}px`
+      left: `${tableViewRect.left}px`,
+      zIndex: `${this.options.zIndex || 100}`
     })
     document.body.appendChild(this.helpRect)
   }

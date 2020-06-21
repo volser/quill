@@ -47,7 +47,7 @@ export default class TableTableDropdown {
       position: 'fixed',
       top: `${tableViewRect.top - TableToolSize}px`,
       left: `${tableViewRect.left - 1}px`,
-      zIndex: '101'
+      zIndex: `${(this.options.zIndex + 1) || 101}`
     })
 
     document.body.appendChild(this.domNode)

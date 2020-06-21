@@ -37,7 +37,11 @@ window.onload = () => {
   const quill = new Quill('#editor', {
     theme: 'snow',
     modules: {
-      table: true
+      table: {
+        tableTools: {
+          zIndex: 1000
+        }
+      }
     }
   })
 

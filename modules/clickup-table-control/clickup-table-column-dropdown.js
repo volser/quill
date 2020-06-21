@@ -48,7 +48,7 @@ export default class TableColumnDropdown {
       position: 'fixed',
       top: `${cellRect.top + cellRect.height}px`,
       left: `${cellRect.left + cellRect.width / 2}px`,
-      zIndex: '101'
+      zIndex: `${(this.options.zIndex + 1) || 101}`
     })
 
     document.body.appendChild(this.domNode)

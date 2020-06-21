@@ -14,7 +14,7 @@ export default class TableRowControl {
     if (!table) return null
     this.table = table
     this.quill = quill
-    this.options = options
+    this.options = options.tableTools || {}
     this.domNode = null
     this.iconManager = new IconManager()
 
@@ -35,7 +35,8 @@ export default class TableRowControl {
       width: `${ROW_TOOL_WIDTH}px`,
       height: `${tableViewRect.height}px`,
       left: `${tableViewRect.left - containerRect.left + parent.scrollLeft - ROW_TOOL_WIDTH}px`,
-      top: `${tableViewRect.top - containerRect.top + parent.scrollTop + 1}px`
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop + 1}px`,
+      zIndex: `${this.options.zIndex || 100}`
     })
   }
 
@@ -163,7 +164,7 @@ export default class TableRowControl {
         position: 'fixed',
         top: `${cellRect.top - 1}px`,
         left: `${cellRect.left}px`,
-        zIndex: '100',
+        zIndex: `${this.options.zIndex || 100}`,
         width: `${Math.min(
           tableViewRect.width + ROW_TOOL_CELL_WIDTH,
           tableRect.width + ROW_TOOL_CELL_WIDTH
@@ -195,7 +196,7 @@ export default class TableRowControl {
         position: 'fixed',
         top: `${cellRect.top + cellRect.height - 1}px`,
         left: `${cellRect.left}px`,
-        zIndex: '100',
+        zIndex: `${this.options.zIndex || 100}`,
         width: `${Math.min(
           tableViewRect.width + ROW_TOOL_CELL_WIDTH,
           tableRect.width + ROW_TOOL_CELL_WIDTH

@@ -13,7 +13,7 @@ export default class TableColumnControl {
     if (!table) return null
     this.table = table
     this.quill = quill
-    this.options = options || {}
+    this.options = options.tableTools || {}
     this.domNode = null
     this.activeDropdown = null
     this.helpRect = null
@@ -35,7 +35,8 @@ export default class TableColumnControl {
       width: `${tableViewRect.width}px`,
       height: `${COL_TOOL_HEIGHT}px`,
       left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
-      top: `${tableViewRect.top - containerRect.top + parent.scrollTop - COL_TOOL_HEIGHT}px`
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop - COL_TOOL_HEIGHT}px`,
+      zIndex: `${this.options.zIndex || 100}`
     })
   }
 
@@ -122,7 +123,8 @@ export default class TableColumnControl {
       this.activeDropdown = new Dropdown(
         this,
         cell,
-        index
+        index,
+        this.options
       )
       this.setCellToActive(cell)
     }, false)
@@ -139,7 +141,8 @@ export default class TableColumnControl {
       width: `${cellRect.width}px`,
       height: `${tableViewRect.height}px`,
       top: `${tableViewRect.top}px`,
-      left: `${cellRect.left}px`
+      left: `${cellRect.left}px`,
+      zIndex: `${this.options.zIndex || 100}`
     })
     document.body.appendChild(this.helpRect)
   }
@@ -172,11 +175,12 @@ export default class TableColumnControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
+
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
         left: `${cellRect.left - 1}px`,
-        zIndex: '100',
+        zIndex: `${this.options.zIndex || 100}`,
         height: `${tableViewRect.height + COL_TOOL_HEIGHT - COL_TOOL_ADD_BUTTON_HEIGHT}px`,
         width: '2px',
         backgroundColor: PRIMARY_COLOR
@@ -205,7 +209,7 @@ export default class TableColumnControl {
         position: 'fixed',
         top: `${cellRect.top}px`,
         left: `${cellRect.left + cellRect.width - 1}px`,
-        zIndex: '100',
+        zIndex: `${this.options.zIndex || 100}`,
         height: `${tableViewRect.height + COL_TOOL_HEIGHT - COL_TOOL_ADD_BUTTON_HEIGHT}px`,
         width: '2px',
         backgroundColor: PRIMARY_COLOR
@@ -291,7 +295,7 @@ export default class TableColumnControl {
         position: 'fixed',
         top: `${cellRect.top}px`,
         left: `${cellRect.left + cellRect.width - 1}px`,
-        zIndex: '100',
+        zIndex: `${this.options.zIndex || 100}`,
         height: `${tableViewRect.height + COL_TOOL_HEIGHT - COL_TOOL_ADD_BUTTON_HEIGHT}px`,
         width: '1px',
         backgroundColor: PRIMARY_COLOR
