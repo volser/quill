@@ -18,8 +18,8 @@ class Uploader extends Module {
       } else {
         return;
       }
-      const normalized = quill.selection.normalizeNative(native);
-      const range = quill.selection.normalizedToRange(normalized);
+      const normalized = this.quill.selection.normalizeNative(native);
+      const range = this.quill.selection.normalizedToRange(normalized);
       this.upload(range, e.dataTransfer.files);
     });
   }
