@@ -191,8 +191,8 @@ class Keyboard extends Module {
     const [prev] = this.quill.getLine(range.index - 1);
 
     if (context.offset === 0 && prev != null) {
-      if (tableCellAllowedBlotName.indexOf(prev.statics.blotName) >= 0 &&
-        tableCellAllowedBlotName.indexOf(line.statics.blotName) < 0
+      if (isTheLineInATableCell(prev) &&
+        !isTheLineInATableCell(line)
       ) return false
     }
 
@@ -774,6 +774,14 @@ function tableSide(table, row, cell, offset) {
     return 1;
   }
   return null;
+}
+
+// table-cell-line, listItem in table
+function isTheLineInATableCell (line) {
+  const key = line.statics.blotName
+  const formats = line.formats()
+  return formats[key] &&
+    !!formats[key].cell
 }
 
 export { Keyboard as default, SHORTKEY, normalize };

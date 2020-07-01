@@ -263,6 +263,7 @@ class Clipboard extends Module {
                 tableCellLineAttrs,
                 {
                   'table-cell-line': false,
+                  'list-container': false,
                   list: {
                     list: op.attributes.list.list,
                     ...tableCellLineAttrs
