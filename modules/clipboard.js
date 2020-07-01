@@ -149,8 +149,23 @@ class Clipboard extends Module {
   onCapturePaste(e) {
     if (e.defaultPrevented || !this.quill.isEnabled()) return;
     e.preventDefault();
-    if (this.options.onCapturePaste.call(this, e)) return;
     const range = this.quill.getSelection(true);
+
+    // Process pasting in table-cell-line before
+    const [thisLeaf] = this.quill.getLine(range.index)
+    if (thisLeaf && thisLeaf.constructor.name === 'TableCellLine') {
+      const html = e.clipboardData.getData('text/html');
+      const text = e.clipboardData.getData('text/plain');
+      const files = Array.from(e.clipboardData.files || []);
+      if (!html && files.length > 0) {
+        this.quill.uploader.upload(range, files);
+      } else {
+        this.onTableCellPaste(range, { html, text });
+      }
+      return;
+    }
+
+    if (this.options.onCapturePaste.call(this, e)) return;
     if (range == null) return;
     const html = e.clipboardData.getData('text/html');
     const text = e.clipboardData.getData('text/plain');
@@ -210,6 +225,85 @@ class Clipboard extends Module {
       }
     });
     return [elementMatchers, textMatchers];
+  }
+
+  onTableCellPaste(range, {text, html}) {
+    const [line] = this.quill.getLine(range.index);
+    const lineFormats = line.formats();
+    const formats = this.quill.getFormat(range.index);
+    let pastedDelta = this.convert({text, html}, formats)
+
+    pastedDelta = pastedDelta.reduce((newDelta, op) => {
+      if (op.insert && typeof op.insert === 'string') {
+        const lines = []
+        let insertStr = op.insert
+        let start = 0
+        for (let i = 0; i < op.insert.length; i++) {
+          if (insertStr.charAt(i) === '\n') {
+            if (i === 0) {
+              lines.push('\n')
+            } else {
+              lines.push(insertStr.substring(start, i))
+              lines.push('\n')
+            }
+            start = i + 1
+          }
+        }
+
+        const tailStr = insertStr.substring(start)
+        if (tailStr) lines.push(tailStr)
+        
+        lines.forEach(text => {
+          if (text === '\n') {
+            if (op.attributes.list) {  // specify for paste list into table cell
+              const tableCellLineAttrs = lineFormats['table-cell-line']
+              const listItemAttrs = extend(
+                {},
+                op.attributes,
+                tableCellLineAttrs,
+                {
+                  'table-cell-line': false,
+                  list: {
+                    list: op.attributes.list.list,
+                    ...tableCellLineAttrs
+                  },
+                  ...tableCellLineAttrs
+                }
+              )
+              newDelta.insert('\n', extend(
+                {},
+                op.attributes,
+                listItemAttrs
+              ))
+            } else { // normal block line
+              newDelta.insert('\n', extend(
+                {},
+                op.attributes,
+                lineFormats
+              ))
+            } 
+          } else {
+            newDelta.insert(text, op.attributes)
+          }
+        })
+      } else {
+        newDelta.insert(op.insert, op.attributes)
+      }
+
+      return newDelta
+    }, new Delta())
+
+    debug.log('onTableCellPaste', pastedDelta, { text, html });
+    const delta = new Delta()
+      .retain(range.index)
+      .delete(range.length)
+      .concat(pastedDelta);
+    this.quill.updateContents(delta, Quill.sources.USER);
+    this.quill.setSelection(
+      delta.length() - range.length,
+      Quill.sources.SILENT,
+    );
+    this.quill.scrollIntoView();
   }
 }
 Clipboard.DEFAULTS = {
