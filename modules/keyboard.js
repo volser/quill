@@ -527,6 +527,42 @@ Keyboard.DEFAULTS = {
       },
     },
 
+    'table-cell-line A': {
+      key: 65,
+      shortKey: true,
+      collapsed: true,
+      format: ['table-cell-line'],
+      handler(range, context) {
+        const { event, line: cellLine } = context;
+        const parentCell = cellLine.parent
+        
+        this.quill.setSelection(
+          this.quill.getIndex(parentCell),
+          parentCell.length(),
+          Quill.sources.USER
+        )
+        return false
+      }
+    },
+
+    'list table A': {
+      key: 65,
+      shortKey: true,
+      collapsed: true,
+      format: ['list', 'cell', 'row'],
+      handler(range, context) {
+        const { event, line: listLine } = context;
+        const parentCell = listLine.parent.parent
+        
+        this.quill.setSelection(
+          this.quill.getIndex(parentCell),
+          parentCell.length(),
+          Quill.sources.USER
+        )
+        return false
+      }
+    },
+
     'list autofill': {
       key: ' ',
       shiftKey: null,
