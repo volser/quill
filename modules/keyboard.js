@@ -538,7 +538,7 @@ Keyboard.DEFAULTS = {
         
         this.quill.setSelection(
           this.quill.getIndex(parentCell),
-          parentCell.length(),
+          parentCell.length() - 1,
           Quill.sources.USER
         )
         return false
@@ -556,7 +556,7 @@ Keyboard.DEFAULTS = {
         
         this.quill.setSelection(
           this.quill.getIndex(parentCell),
-          parentCell.length(),
+          parentCell.length() - 1,
           Quill.sources.USER
         )
         return false
