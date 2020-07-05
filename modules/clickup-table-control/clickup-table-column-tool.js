@@ -75,6 +75,12 @@ export default class TableColumnControl {
 
   updateToolCells () {
     const tableContainer = Quill.find(this.table)
+    if (!tableContainer) {
+      const tableModule = this.quill.getModule('table')
+      tableModule.hideTableTools()
+      return false
+    }
+
     const tableCols = tableContainer.colGroup().children
     const cellsNumber = tableCols.length
     let existCells = Array.from(this.domNode.querySelectorAll('.cu-col-tool-cell'))

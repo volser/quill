@@ -76,6 +76,12 @@ export default class TableRowControl {
 
   updateToolCells () {
     const tableContainer = Quill.find(this.table)
+    if (!tableContainer) {
+      const tableModule = this.quill.getModule('table')
+      tableModule.hideTableTools()
+      return false
+    }
+
     const [tableBody] = tableContainer.descendants(TableBody)
     const tableRows = tableBody.children
     const cellsNumber = tableRows.length

@@ -45,6 +45,11 @@ window.onload = () => {
     }
   })
 
+  quill.on('text-change', (newDelta, oldContents, source) => {
+    console.log(newDelta)
+  })
+
+  window.quill = quill
   // test parse old table delta to new
   // quill.setContents(tableDeltaParser(oldListDelta))
 
