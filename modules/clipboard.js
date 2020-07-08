@@ -255,7 +255,7 @@ class Clipboard extends Module {
         
         lines.forEach(text => {
           if (text === '\n') {
-            if (op.attributes.list) {  // specify for paste list into table cell
+            if (op.attributes && op.attributes.list) {  // specify for paste list into table cell
               const tableCellLineAttrs = lineFormats['table-cell-line']
               const listItemAttrs = extend(
                 {},
