@@ -22,7 +22,7 @@ export function matchTableCell(node, delta, scroll) {
   const rows = Array.from(table.querySelectorAll('tr'));
   const cells = Array.from(row.querySelectorAll('td'));
   const rowId = rows.indexOf(row) + 1;
-  const cellId = cells.indexOf(node) + 1;
+  const cellId = `${rowId}-${cells.indexOf(node) + 1}`;
   const colspan = node.getAttribute('colspan') || 1
   const rowspan = node.getAttribute('rowspan') || 1
 
@@ -56,7 +56,7 @@ export function matchTableCell(node, delta, scroll) {
       lines.forEach(text => {
         text === '\n'
         ? newDelta.insert('\n', op.attributes)
-        : newDelta.insert(text, _omit(op.attributes, ['table', 'table-cell-line']))
+        : newDelta.insert(text, _omit(op.attributes, ['table', 'table-cell-line', 'list-container', 'list']))
       })
     } else {
       newDelta.insert(op.insert, op.attributes)
@@ -70,7 +70,13 @@ export function matchTableCell(node, delta, scroll) {
       op.insert.startsWith('\n')
     ) {
       let blotAttributes = op.attributes.list
-        ? { 'list': { row: rowId, cell: cellId, rowspan, colspan, ...op.attributes.list } }
+        ? {
+          'list': Object.assign(
+            {},
+            { row: rowId, cell: cellId, rowspan, colspan, ...op.attributes.list },
+            op.attributes.table
+          )
+        }
         : { 'table-cell-line': { row: rowId, cell: cellId, rowspan, colspan } }
 
       newDelta.insert(op.insert, Object.assign(
