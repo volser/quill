@@ -51,15 +51,18 @@ class TableCellLine extends Block {
         this.domNode.removeAttribute(`data-${name}`)
       }
     } else if (name === 'list') {
-      if (!value) return;
-      const { row, cell, rowspan, colspan } = TableCellLine.formats(this.domNode)
-      super.format(name, {
-        list: value,
-        row,
-        cell,
-        rowspan,
-        colspan
-      })
+      if (typeof value === 'string') {
+        const { row, cell, rowspan, colspan } = TableCellLine.formats(this.domNode)
+        super.format(name, {
+          list: value,
+          row,
+          cell,
+          rowspan,
+          colspan
+        })
+      } else {
+        super.format(name, value)
+      }
     } else {
       super.format(name, value)
     }
@@ -665,18 +668,18 @@ class ListItem extends Block {
       }, formats)
   }
 
-  formats () {
-    const formats = {}
+  // formats () {
+  //   const formats = {}
 
-    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
-      .concat(['list'])
-      .reduce((formats, attribute) => {
-        if (this.domNode.hasAttribute(`data-${attribute}`)) {
-          formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
-        }
-        return formats
-      }, formats)
-  }
+  //   return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+  //     .concat(['list'])
+  //     .reduce((formats, attribute) => {
+  //       if (this.domNode.hasAttribute(`data-${attribute}`)) {
+  //         formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
+  //       }
+  //       return formats
+  //     }, formats)
+  // }
 
   constructor(scroll, domNode) {
     super(scroll, domNode);
@@ -717,6 +720,8 @@ class ListItem extends Block {
           super.format(name, value)
         }
       }
+    } else if (name === TableCellLine.blotName) {
+      console.log(cell)
     } else {
       super.format(name, value)
     }
