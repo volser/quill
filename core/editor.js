@@ -322,6 +322,11 @@ function combineFormats(formats, combined) {
 }
 
 function getListType(type) {
+  // clickup: Since the data structure of List changed.
+  type = typeof type === 'string'
+    ? type
+    : type.list
+
   const tag = type === 'ordered' ? 'ol' : 'ul';
   switch (type) {
     case 'checked':
