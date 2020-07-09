@@ -51,15 +51,18 @@ class TableCellLine extends Block {
         this.domNode.removeAttribute(`data-${name}`)
       }
     } else if (name === 'list') {
-      if (!value) return;
-      const { row, cell, rowspan, colspan } = TableCellLine.formats(this.domNode)
-      super.format(name, {
-        list: value,
-        row,
-        cell,
-        rowspan,
-        colspan
-      })
+      if (typeof value === 'string') {
+        const { row, cell, rowspan, colspan } = TableCellLine.formats(this.domNode)
+        super.format(name, {
+          list: value,
+          row,
+          cell,
+          rowspan,
+          colspan
+        })
+      } else {
+        super.format(name, value)
+      }
     } else {
       super.format(name, value)
     }
@@ -72,32 +75,15 @@ class TableCellLine extends Block {
     const rowId = this.domNode.getAttribute('data-row')
     const rowspan = this.domNode.getAttribute('data-rowspan')
     const colspan = this.domNode.getAttribute('data-colspan')
-    if (
-      !(this.parent instanceof this.statics.requiredContainer)
-    ) {
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
       this.wrap(this.statics.requiredContainer.blotName, {
         cell: cellId,
         row: rowId,
         colspan,
         rowspan
       })
-    } else if (
-      this.parent instanceof this.statics.requiredContainer &&
-        TableCell.formats(this.parent.domNode).cell !== cellId
-    ) {
-      const targetCell = this.tableCell().table().descendants(TableCell).find(cell => cell.formats().cell === cellId)
-      if (targetCell) {
-        targetCell.insertBefore(this)
-      } else {
-        this.wrap(this.statics.requiredContainer.blotName, {
-          cell: cellId,
-          row: rowId,
-          colspan,
-          rowspan
-        })
-      }
     }
-
     super.optimize(context)
   }
 
@@ -182,10 +168,6 @@ class TableCell extends Container {
       formats["cell"] = this.domNode.getAttribute("data-cell")
     }
 
-    if (this.domNode.hasAttribute("data-cell-bg")) {
-      formats["cell-bg"] = this.domNode.getAttribute("data-cell-bg")
-    }
-
     return CELL_ATTRIBUTES.reduce((formats, attribute) => {
       if (this.domNode.hasAttribute(attribute)) {
         formats[attribute] = this.domNode.getAttribute(attribute)
@@ -222,25 +204,13 @@ class TableCell extends Container {
   }
 
   optimize(context) {
-    const rowId = this.domNode.getAttribute('data-row')
-    if (
-      !(this.parent instanceof this.statics.requiredContainer)
-    ) {
+    const rowId = this.domNode.getAttribute("data-row")
+
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
       this.wrap(this.statics.requiredContainer.blotName, {
         row: rowId
       })
-    } else if (
-      this.parent instanceof this.statics.requiredContainer &&
-      TableRow.formats(this.parent.domNode).row !== rowId
-    ) {
-      const targetRow = this.table().descendants(TableRow).find(row => row.formats().row === rowId)
-      if (targetRow) {
-        targetRow.insertBefore(this)
-      } else {
-        this.wrap(this.statics.requiredContainer.blotName, {
-          row: rowId
-        })
-      }
     }
     super.optimize(context)
   }
@@ -286,15 +256,6 @@ class TableRow extends Container {
     return node
   }
 
-  static formats(domNode) {
-    return ["row"].reduce((formats, attrName) => {
-      if (domNode.hasAttribute(`data-${attrName}`)) {
-        formats[attrName] = domNode.getAttribute(`data-${attrName}`)
-      }
-      return formats
-    }, {})
-  }
-
   formats() {
     return ["row"].reduce((formats, attrName) => {
       if (this.domNode.hasAttribute(`data-${attrName}`)) {
@@ -305,37 +266,27 @@ class TableRow extends Container {
   }
 
   optimize (context) {
-    const rowId = this.domNode.getAttribute('data-row')
     // optimize function of ShadowBlot
     if (
+      this.statics.requiredContainer &&
       !(this.parent instanceof this.statics.requiredContainer)
     ) {
       this.wrap(this.statics.requiredContainer.blotName)
     }
-    
-    const targetRow = this.table().descendants(TableRow).find(row => row.formats().row === rowId)
-    if (
-      this.parent instanceof this.statics.requiredContainer &&
-      targetRow &&
-      targetRow !== this
-    ) {
-      this.moveChildren(targetRow)
-    }
 
-    super.optimize(context)
     // optimize function of ParentBlot
     // note: modified this optimize function because
     // TableRow should not be removed when the length of its children was 0
-    // this.enforceAllowedChildren()
-    // if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
-    //   this.domNode.insertBefore(this.uiNode, this.domNode.firstChild)
-    // }
+    this.enforceAllowedChildren()
+    if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
+      this.domNode.insertBefore(this.uiNode, this.domNode.firstChild)
+    }
 
     // optimize function of ContainerBlot
-    // if (this.children.length > 0 && this.next != null && this.checkMerge()) {
-    //   this.next.moveChildren(this)
-    //   this.next.remove()
-    // }
+    if (this.children.length > 0 && this.next != null && this.checkMerge()) {
+      this.next.moveChildren(this)
+      this.next.remove()
+    }
   }
 
   rowOffset() {
@@ -352,11 +303,7 @@ class TableRow extends Container {
 TableRow.blotName = "table-row"
 TableRow.tagName = "TR"
 
-class TableBody extends Container {
-  checkMerge () {
-    return true
-  }
-}
+class TableBody extends Container {}
 TableBody.blotName = "table-body"
 TableBody.tagName = "TBODY"
 
@@ -409,18 +356,47 @@ class TableContainer extends Container {
     this.updateTableWidth()
   }
 
+  balanceCells () {
+    this.descendants(TableCell).forEach(parentCell => {
+      const parentCellId = parentCell.formats().cell
+      const cellChildren = parentCell.children
+      let hasDifferentCellIdChild = false
+      cellChildren.forEach(child => {
+        const childFormats = child.formats()[child.statics.blotName] || child.formats()
+        if (childFormats.cell !== parentCellId) hasDifferentCellIdChild = true
+      })
+
+      if (hasDifferentCellIdChild) {
+        parentCell.unwrap()
+      }
+    })
+
+    this.descendants(TableRow).forEach(parentRow => {
+      const parentRowId = parentRow.formats().row
+      const rowChildren = parentRow.children
+      let hasDifferentRowIdChild = false
+      rowChildren.forEach(child => {
+        const childFormats = child.formats()[child.statics.blotName] || child.formats()
+        if (childFormats.row !== parentRowId) hasDifferentRowIdChild = true
+      })
+
+      if (hasDifferentRowIdChild) {
+        parentRow.unwrap()
+      }
+    })
+
+    this.updateTableWidth()
+  }
+
   updateTableWidth () {
     setTimeout(() => {
       const colGroup = this.colGroup()
-      const tableModule = quill.getModule('table')
       if (!colGroup) return
       const tableWidth = colGroup.children.reduce((sumWidth, col) => {
         sumWidth = sumWidth + parseInt(col.formats()[TableCol.blotName].width, 10)
         return sumWidth
       }, 0)
       this.domNode.style.width = `${tableWidth}px`
-
-      tableModule.columnTool && tableModule.columnTool.updateToolCells()
     }, 0)
   }
 
@@ -443,11 +419,6 @@ class TableContainer extends Container {
     const body = this.children.tail
     if (body == null) return []
     return body.children.map(row => row)
-  }
-
-  optimize(context) {
-    super.optimize(context)
-    this.updateTableWidth()
   }
 
   insertColumn(index, isRight = true) {
@@ -697,6 +668,19 @@ class ListItem extends Block {
       }, formats)
   }
 
+  // formats () {
+  //   const formats = {}
+
+  //   return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+  //     .concat(['list'])
+  //     .reduce((formats, attribute) => {
+  //       if (this.domNode.hasAttribute(`data-${attribute}`)) {
+  //         formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
+  //       }
+  //       return formats
+  //     }, formats)
+  // }
+
   constructor(scroll, domNode) {
     super(scroll, domNode);
     const ui = domNode.ownerDocument.createElement('span');
@@ -736,6 +720,8 @@ class ListItem extends Block {
           super.format(name, value)
         }
       }
+    } else if (name === TableCellLine.blotName) {
+      console.log(cell)
     } else {
       super.format(name, value)
     }
