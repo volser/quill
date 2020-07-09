@@ -404,20 +404,22 @@ class TableContainer extends Container {
 
     body.children.forEach(tableRow => {
       const { row } = tableRow.formats()
+      const cell = cellId()
       const thisCell = tableRow.children.at(index)
       const ref = isRight ? thisCell.next : thisCell
 
       const tableCell = this.scroll.create(
         TableCell.blotName,
         Object.assign({}, CELL_DEFAULT, {
-          row
+          row,
+          cell
         })
       )
       const cellLine = this.scroll.create(
         TableCellLine.blotName,
         Object.assign({}, CELL_DEFAULT, {
           row,
-          cell: cellId()
+          cell
         })
       )
       tableCell.appendChild(cellLine)
@@ -461,17 +463,19 @@ class TableContainer extends Container {
     let cellLine
     let empty
     new Array(cellNumber).fill(0).forEach(() => {
+      const cell = cellId()
       tableCell = this.scroll.create(
         TableCell.blotName,
         Object.assign({}, CELL_DEFAULT, {
-          row: newRowId
+          row: newRowId,
+          cell
         })
       )
       cellLine = this.scroll.create(
         TableCellLine.blotName,
         Object.assign({}, CELL_DEFAULT, {
           row: newRowId,
-          cell: cellId()
+          cell
         })
       )
       empty = this.scroll.create(Break.blotName)
