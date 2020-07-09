@@ -68,36 +68,17 @@ class TableCellLine extends Block {
   optimize(context) {
     // cover shadowBlot's wrap call, pass params parentBlot initialize
     // needed
-    const cellId = this.domNode.getAttribute('data-cell')
     const rowId = this.domNode.getAttribute('data-row')
     const rowspan = this.domNode.getAttribute('data-rowspan')
     const colspan = this.domNode.getAttribute('data-colspan')
-    if (
-      !(this.parent instanceof this.statics.requiredContainer)
-    ) {
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
       this.wrap(this.statics.requiredContainer.blotName, {
-        cell: cellId,
         row: rowId,
         colspan,
         rowspan
       })
-    } else if (
-      this.parent instanceof this.statics.requiredContainer &&
-        TableCell.formats(this.parent.domNode).cell !== cellId
-    ) {
-      const targetCell = this.tableCell().table().descendants(TableCell).find(cell => cell.formats().cell === cellId)
-      if (targetCell) {
-        targetCell.insertBefore(this)
-      } else {
-        this.wrap(this.statics.requiredContainer.blotName, {
-          cell: cellId,
-          row: rowId,
-          colspan,
-          rowspan
-        })
-      }
     }
-
     super.optimize(context)
   }
 
@@ -133,7 +114,6 @@ class TableCell extends Container {
   static create(value) {
     const node = super.create(value)
     node.setAttribute("data-row", value.row)
-    node.setAttribute("data-cell", value.cell)
 
     CELL_ATTRIBUTES.forEach(attrName => {
       if (value[attrName]) {
@@ -149,10 +129,6 @@ class TableCell extends Container {
 
     if (domNode.hasAttribute("data-row")) {
       formats["row"] = domNode.getAttribute("data-row")
-    }
-
-    if (domNode.hasAttribute("data-cell")) {
-      formats["cell"] = domNode.getAttribute("data-cell")
     }
 
     return CELL_ATTRIBUTES.reduce((formats, attribute) => {
@@ -176,10 +152,6 @@ class TableCell extends Container {
 
     if (this.domNode.hasAttribute("data-row")) {
       formats["row"] = this.domNode.getAttribute("data-row")
-    }
-
-    if (this.domNode.hasAttribute("data-cell")) {
-      formats["cell"] = this.domNode.getAttribute("data-cell")
     }
 
     if (this.domNode.hasAttribute("data-cell-bg")) {
@@ -222,25 +194,13 @@ class TableCell extends Container {
   }
 
   optimize(context) {
-    const rowId = this.domNode.getAttribute('data-row')
-    if (
-      !(this.parent instanceof this.statics.requiredContainer)
-    ) {
+    const rowId = this.domNode.getAttribute("data-row")
+
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
       this.wrap(this.statics.requiredContainer.blotName, {
         row: rowId
       })
-    } else if (
-      this.parent instanceof this.statics.requiredContainer &&
-      TableRow.formats(this.parent.domNode).row !== rowId
-    ) {
-      const targetRow = this.table().descendants(TableRow).find(row => row.formats().row === rowId)
-      if (targetRow) {
-        targetRow.insertBefore(this)
-      } else {
-        this.wrap(this.statics.requiredContainer.blotName, {
-          row: rowId
-        })
-      }
     }
     super.optimize(context)
   }
@@ -286,15 +246,6 @@ class TableRow extends Container {
     return node
   }
 
-  static formats(domNode) {
-    return ["row"].reduce((formats, attrName) => {
-      if (domNode.hasAttribute(`data-${attrName}`)) {
-        formats[attrName] = domNode.getAttribute(`data-${attrName}`)
-      }
-      return formats
-    }, {})
-  }
-
   formats() {
     return ["row"].reduce((formats, attrName) => {
       if (this.domNode.hasAttribute(`data-${attrName}`)) {
@@ -305,37 +256,27 @@ class TableRow extends Container {
   }
 
   optimize (context) {
-    const rowId = this.domNode.getAttribute('data-row')
     // optimize function of ShadowBlot
     if (
+      this.statics.requiredContainer &&
       !(this.parent instanceof this.statics.requiredContainer)
     ) {
       this.wrap(this.statics.requiredContainer.blotName)
     }
-    
-    const targetRow = this.table().descendants(TableRow).find(row => row.formats().row === rowId)
-    if (
-      this.parent instanceof this.statics.requiredContainer &&
-      targetRow &&
-      targetRow !== this
-    ) {
-      this.moveChildren(targetRow)
-    }
 
-    super.optimize(context)
     // optimize function of ParentBlot
     // note: modified this optimize function because
     // TableRow should not be removed when the length of its children was 0
-    // this.enforceAllowedChildren()
-    // if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
-    //   this.domNode.insertBefore(this.uiNode, this.domNode.firstChild)
-    // }
+    this.enforceAllowedChildren()
+    if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
+      this.domNode.insertBefore(this.uiNode, this.domNode.firstChild)
+    }
 
     // optimize function of ContainerBlot
-    // if (this.children.length > 0 && this.next != null && this.checkMerge()) {
-    //   this.next.moveChildren(this)
-    //   this.next.remove()
-    // }
+    if (this.children.length > 0 && this.next != null && this.checkMerge()) {
+      this.next.moveChildren(this)
+      this.next.remove()
+    }
   }
 
   rowOffset() {
@@ -352,11 +293,7 @@ class TableRow extends Container {
 TableRow.blotName = "table-row"
 TableRow.tagName = "TR"
 
-class TableBody extends Container {
-  checkMerge () {
-    return true
-  }
-}
+class TableBody extends Container {}
 TableBody.blotName = "table-body"
 TableBody.tagName = "TBODY"
 
@@ -412,15 +349,12 @@ class TableContainer extends Container {
   updateTableWidth () {
     setTimeout(() => {
       const colGroup = this.colGroup()
-      const tableModule = quill.getModule('table')
       if (!colGroup) return
       const tableWidth = colGroup.children.reduce((sumWidth, col) => {
         sumWidth = sumWidth + parseInt(col.formats()[TableCol.blotName].width, 10)
         return sumWidth
       }, 0)
       this.domNode.style.width = `${tableWidth}px`
-
-      tableModule.columnTool && tableModule.columnTool.updateToolCells()
     }, 0)
   }
 
@@ -445,11 +379,6 @@ class TableContainer extends Container {
     return body.children.map(row => row)
   }
 
-  optimize(context) {
-    super.optimize(context)
-    this.updateTableWidth()
-  }
-
   insertColumn(index, isRight = true) {
     const [body] = this.descendants(TableBody)
     const [colGroup] = this.descendants(TableColGroup)
@@ -468,22 +397,20 @@ class TableContainer extends Container {
 
     body.children.forEach(tableRow => {
       const { row } = tableRow.formats()
-      const cell = cellId()
       const thisCell = tableRow.children.at(index)
       const ref = isRight ? thisCell.next : thisCell
 
       const tableCell = this.scroll.create(
         TableCell.blotName,
         Object.assign({}, CELL_DEFAULT, {
-          row,
-          cell
+          row
         })
       )
       const cellLine = this.scroll.create(
         TableCellLine.blotName,
         Object.assign({}, CELL_DEFAULT, {
           row,
-          cell
+          cell: cellId()
         })
       )
       tableCell.appendChild(cellLine)
@@ -527,19 +454,17 @@ class TableContainer extends Container {
     let cellLine
     let empty
     new Array(cellNumber).fill(0).forEach(() => {
-      const cell = cellId()
       tableCell = this.scroll.create(
         TableCell.blotName,
         Object.assign({}, CELL_DEFAULT, {
-          row: newRowId,
-          cell
+          row: newRowId
         })
       )
       cellLine = this.scroll.create(
         TableCellLine.blotName,
         Object.assign({}, CELL_DEFAULT, {
           row: newRowId,
-          cell
+          cell: cellId()
         })
       )
       empty = this.scroll.create(Break.blotName)
