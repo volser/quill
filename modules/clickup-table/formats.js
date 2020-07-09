@@ -68,12 +68,14 @@ class TableCellLine extends Block {
   optimize(context) {
     // cover shadowBlot's wrap call, pass params parentBlot initialize
     // needed
+    const cellId = this.domNode.getAttribute('data-cell')
     const rowId = this.domNode.getAttribute('data-row')
     const rowspan = this.domNode.getAttribute('data-rowspan')
     const colspan = this.domNode.getAttribute('data-colspan')
     if (this.statics.requiredContainer &&
       !(this.parent instanceof this.statics.requiredContainer)) {
       this.wrap(this.statics.requiredContainer.blotName, {
+        cell: cellId,
         row: rowId,
         colspan,
         rowspan
@@ -114,6 +116,7 @@ class TableCell extends Container {
   static create(value) {
     const node = super.create(value)
     node.setAttribute("data-row", value.row)
+    node.setAttribute("data-cell", value.cell)
 
     CELL_ATTRIBUTES.forEach(attrName => {
       if (value[attrName]) {
@@ -129,6 +132,10 @@ class TableCell extends Container {
 
     if (domNode.hasAttribute("data-row")) {
       formats["row"] = domNode.getAttribute("data-row")
+    }
+
+    if (domNode.hasAttribute("data-cell")) {
+      formats["cell"] = domNode.getAttribute("data-cell")
     }
 
     return CELL_ATTRIBUTES.reduce((formats, attribute) => {
@@ -154,8 +161,8 @@ class TableCell extends Container {
       formats["row"] = this.domNode.getAttribute("data-row")
     }
 
-    if (this.domNode.hasAttribute("data-cell-bg")) {
-      formats["cell-bg"] = this.domNode.getAttribute("data-cell-bg")
+    if (this.domNode.hasAttribute("data-cell")) {
+      formats["cell"] = this.domNode.getAttribute("data-cell")
     }
 
     return CELL_ATTRIBUTES.reduce((formats, attribute) => {
