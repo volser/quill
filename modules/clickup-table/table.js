@@ -83,6 +83,8 @@ class Table extends Module {
     quill.clipboard.addMatcher('td', matchTableCell)
     quill.clipboard.addMatcher('th', matchTableHeader)
     quill.clipboard.addMatcher('table', matchTable)
+
+    this.listenBalanceCells()
   }
 
   showTableTools (table, quill, options) {
@@ -155,6 +157,27 @@ class Table extends Module {
 
     this.quill.updateContents(delta, Quill.sources.USER)
     this.quill.setSelection(range.index + columns + 1, Quill.sources.API)
+  }
+
+  listenBalanceCells() {
+    this.quill.on(Quill.events.SCROLL_OPTIMIZE, mutations => {
+      mutations.some(mutation => {
+        if (['TD', 'TR', 'TBODY', 'TABLE'].includes(mutation.target.tagName)) {
+          this.quill.once(Quill.events.TEXT_CHANGE, (delta, old, source) => {
+            if (source !== Quill.sources.USER) return;
+            this.balanceTables();
+          });
+          return true;
+        }
+        return false;
+      });
+    });
+  }
+
+  balanceTables() {
+    this.quill.scroll.descendants(TableContainer).forEach(table => {
+      table.balanceCells();
+    });
   }
 }
 

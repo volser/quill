@@ -353,6 +353,38 @@ class TableContainer extends Container {
     this.updateTableWidth()
   }
 
+  balanceCells () {
+    this.descendants(TableCell).forEach(parentCell => {
+      const parentCellId = parentCell.formats().cell
+      const cellChildren = parentCell.children
+      let hasDifferentCellIdChild = false
+      cellChildren.forEach(child => {
+        const childFormats = child.formats()[child.statics.blotName] || child.formats()
+        if (childFormats.cell !== parentCellId) hasDifferentCellIdChild = true
+      })
+
+      if (hasDifferentCellIdChild) {
+        parentCell.unwrap()
+      }
+    })
+
+    this.descendants(TableRow).forEach(parentRow => {
+      const parentRowId = parentRow.formats().row
+      const rowChildren = parentRow.children
+      let hasDifferentRowIdChild = false
+      rowChildren.forEach(child => {
+        const childFormats = child.formats()[child.statics.blotName] || child.formats()
+        if (childFormats.row !== parentRowId) hasDifferentRowIdChild = true
+      })
+
+      if (hasDifferentRowIdChild) {
+        parentRow.unwrap()
+      }
+    })
+
+    this.updateTableWidth()
+  }
+
   updateTableWidth () {
     setTimeout(() => {
       const colGroup = this.colGroup()
@@ -628,6 +660,19 @@ class ListItem extends Block {
       .reduce((formats, attribute) => {
         if (domNode.hasAttribute(`data-${attribute}`)) {
           formats[attribute] = domNode.getAttribute(`data-${attribute}`) || undefined
+        }
+        return formats
+      }, formats)
+  }
+
+  formats () {
+    const formats = {}
+
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+      .concat(['list'])
+      .reduce((formats, attribute) => {
+        if (this.domNode.hasAttribute(`data-${attribute}`)) {
+          formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
         }
         return formats
       }, formats)
