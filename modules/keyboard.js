@@ -499,6 +499,24 @@ Keyboard.DEFAULTS = {
       },
     },
 
+    'table-cell-line backspace': {
+      key: 'Backspace',
+      shortKey: true,
+      format: ['table-cell-line'],
+      collapsed: true,
+      offset: 0,
+      handler(range, context) {
+        const [line, offset] = this.quill.getLine(range.index)
+        if (
+          line.prev &&
+          ['table-cell-line', 'list', 'list-container'].indexOf(line.prev.statics.blotName) >= 0
+        ) {
+          return true
+        }
+        return false
+      },
+    },
+
     'table-cell-line delete': {
       key: 'Delete',
       format: ['table-cell-line'],
