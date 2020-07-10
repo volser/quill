@@ -274,19 +274,7 @@ class TableRow extends Container {
       this.wrap(this.statics.requiredContainer.blotName)
     }
 
-    // optimize function of ParentBlot
-    // note: modified this optimize function because
-    // TableRow should not be removed when the length of its children was 0
-    this.enforceAllowedChildren()
-    if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
-      this.domNode.insertBefore(this.uiNode, this.domNode.firstChild)
-    }
-
-    // optimize function of ContainerBlot
-    if (this.children.length > 0 && this.next != null && this.checkMerge()) {
-      this.next.moveChildren(this)
-      this.next.remove()
-    }
+    super.optimize(context)
   }
 
   rowOffset() {

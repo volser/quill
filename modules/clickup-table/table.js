@@ -161,15 +161,16 @@ class Table extends Module {
 
   listenBalanceCells() {
     this.quill.on(Quill.events.SCROLL_OPTIMIZE, mutations => {
-      mutations.some(mutation => {
+      const flag = mutations.some(mutation => {
         if (['TD', 'TR', 'TBODY', 'TABLE'].includes(mutation.target.tagName)) {
-          this.quill.once(Quill.events.TEXT_CHANGE, (delta, old, source) => {
-            this.balanceTables();
-          });
           return true;
         }
         return false;
       });
+
+      if (flag) {
+        this.balanceTables();
+      }
     });
   }
 
