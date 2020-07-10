@@ -75,7 +75,8 @@ export default class TableColumnControl {
 
   updateToolCells () {
     const tableContainer = Quill.find(this.table)
-    if (!tableContainer) {
+    if (!tableContainer ||
+      !tableContainer.colGroup()) {
       const tableModule = this.quill.getModule('table')
       tableModule.hideTableTools()
       return false

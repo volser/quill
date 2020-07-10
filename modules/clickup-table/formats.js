@@ -400,7 +400,10 @@ class TableContainer extends Container {
   }
 
   colGroup () {
-    return this.children.head
+    return (
+      this.children.head instanceof TableColGroup &&
+      this.children.head
+    ) || null
   }
 
   rows() {
@@ -709,7 +712,11 @@ class ListItem extends Block {
         }
       }
     } else if (name === TableCellLine.blotName) {
-      console.log(cell)
+      if (value) {
+        this.replaceWith(TableCellLine.blotName, value)
+      } else {
+        super.format(name, value)
+      }
     } else {
       super.format(name, value)
     }
