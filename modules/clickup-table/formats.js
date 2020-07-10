@@ -373,7 +373,59 @@ class TableContainer extends Container {
       }
     })
 
-    this.updateTableWidth()
+    setTimeout(() => {
+      this.rebuildWholeTable()
+      this.updateTableWidth()
+    }, 0)
+  }
+
+  // call this when a table was broken
+  rebuildWholeTable () {
+    let colGroup = this.colGroup()
+    const [body] = this.descendants(TableBody)
+    const rows = this.descendants(TableRow);
+    const maxColumns = rows.reduce((max, row) => {
+      return Math.max(row.children.length, max);
+    }, 0);
+
+    if (!colGroup) {
+      colGroup = this.scroll.create(TableColGroup.blotName, true)
+      new Array(maxColumns).fill(0).forEach(() => {
+        const tableCol = this.scroll.create(TableCol.blotName, true)
+        colGroup.appendChild(tableCol)
+        tableCol.optimize()
+      })
+      this.insertBefore(colGroup, body)
+    } else {
+      new Array(maxColumns - colGroup.children.length).fill(0).forEach(() => {
+        const tableCol = this.scroll.create(TableCol.blotName, true)
+        colGroup.appendChild(tableCol)
+        tableCol.optimize()
+      })
+    }
+
+    rows.forEach(row => {
+      new Array(maxColumns - row.children.length).fill(0).forEach(() => {
+        const cell = cellId()
+        const tableCell = this.scroll.create(
+          TableCell.blotName,
+          Object.assign({}, CELL_DEFAULT, {
+            row: row.formats().row,
+            cell
+          })
+        )
+        const cellLine = this.scroll.create(
+          TableCellLine.blotName,
+          Object.assign({}, CELL_DEFAULT, {
+            row: row.formats().row,
+            cell
+          })
+        )
+        tableCell.appendChild(cellLine)
+        row.appendChild(tableCell)
+        cellLine.optimize()
+      });
+    });
   }
 
   updateTableWidth () {
