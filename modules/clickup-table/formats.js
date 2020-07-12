@@ -388,6 +388,7 @@ class TableContainer extends Container {
       return Math.max(row.children.length, max);
     }, 0);
 
+    // rebuild table column group
     if (!colGroup) {
       colGroup = this.scroll.create(TableColGroup.blotName, true)
       new Array(maxColumns).fill(0).forEach(() => {
@@ -397,13 +398,23 @@ class TableContainer extends Container {
       })
       this.insertBefore(colGroup, body)
     } else {
-      new Array(maxColumns - colGroup.children.length).fill(0).forEach(() => {
-        const tableCol = this.scroll.create(TableCol.blotName, true)
-        colGroup.appendChild(tableCol)
-        tableCol.optimize()
-      })
+      const differ = maxColumns - colGroup.children.length
+      if (differ > 0) {
+        new Array(differ).fill(0).forEach(() => {
+          const tableCol = this.scroll.create(TableCol.blotName, true)
+          colGroup.appendChild(tableCol)
+          tableCol.optimize()
+        })
+      } else if (differ < 0) {
+        new Array(Math.abs(differ)).fill(0).forEach(() => {
+          colGroup.removeChild(
+            colGroup.children.at(colGroup.children.length - 1)
+          )
+        })
+      }
     }
 
+    // rebuild missing table cells
     rows.forEach(row => {
       new Array(maxColumns - row.children.length).fill(0).forEach(() => {
         const cell = cellId()
