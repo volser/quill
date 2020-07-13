@@ -345,6 +345,11 @@ class TableContainer extends Container {
   }
 
   balanceCells () {
+    if (this.descendants(TableCell).length <= 0) {
+      this.remove()
+      return false
+    }
+
     this.descendants(TableCell).forEach(parentCell => {
       const parentCellId = parentCell.formats().cell
       const cellChildren = parentCell.children
