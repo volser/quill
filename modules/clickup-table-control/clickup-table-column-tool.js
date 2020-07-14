@@ -23,9 +23,10 @@ export default class TableColumnControl {
 
   initColTool () {
     const parent = this.quill.root.parentNode
+    const tableView = this.table.parentNode
     const tableRect = this.table.getBoundingClientRect()
     const containerRect = parent.getBoundingClientRect()
-    const tableViewRect = this.table.parentNode.getBoundingClientRect()
+    const tableViewRect = tableView.getBoundingClientRect()
 
     this.domNode = document.createElement('div')
     this.domNode.classList.add('cu-col-tool')
@@ -38,6 +39,7 @@ export default class TableColumnControl {
       top: `${tableViewRect.top - containerRect.top + parent.scrollTop - COL_TOOL_HEIGHT}px`,
       zIndex: `${this.options.zIndex || 100}`
     })
+    this.domNode.scrollLeft = tableView.scrollLeft
   }
 
   createToolCell () {
