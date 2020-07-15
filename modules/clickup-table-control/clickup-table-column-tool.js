@@ -9,7 +9,7 @@ const PRIMARY_COLOR = '#35A7ED'
 const COL_TOOL_CELL_HEIGHT = 12
 
 export default class TableColumnControl {
-  constructor (table, quill, options) {
+  constructor(table, quill, options) {
     if (!table) return null
     this.table = table
     this.quill = quill
@@ -21,7 +21,7 @@ export default class TableColumnControl {
     this.initColTool()
   }
 
-  initColTool () {
+  initColTool() {
     const parent = this.quill.root.parentNode
     const tableView = this.table.parentNode
     const tableRect = this.table.getBoundingClientRect()
@@ -42,7 +42,7 @@ export default class TableColumnControl {
     this.domNode.scrollLeft = tableView.scrollLeft
   }
 
-  createToolCell () {
+  createToolCell() {
     const toolCell = document.createElement('div')
     toolCell.classList.add('cu-col-tool-cell')
     css(toolCell, {
@@ -75,7 +75,7 @@ export default class TableColumnControl {
     return toolCell
   }
 
-  updateToolCells () {
+  updateToolCells() {
     const tableContainer = Quill.find(this.table)
     if (!tableContainer ||
       !tableContainer.colGroup()) {
@@ -115,7 +115,7 @@ export default class TableColumnControl {
     }
   }
 
-  destroy () {
+  destroy() {
     this.domNode.remove()
     return null
   }
@@ -123,7 +123,7 @@ export default class TableColumnControl {
   addDropdownIconHandler(cell) {
     const $dropdownIcon = cell.querySelector('.cu-col-tool-cell-dropdown-icon')
     const index = [].indexOf.call(this.domNode.childNodes, cell)
-    
+
 
     $dropdownIcon.addEventListener('click', e => {
       e.stopPropagation()
@@ -184,7 +184,7 @@ export default class TableColumnControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
-
+      this.helpRect.classList.add('cu-help-line')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
@@ -214,6 +214,7 @@ export default class TableColumnControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
+      this.helpRect.classList.add('cu-help-line')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
@@ -300,6 +301,7 @@ export default class TableColumnControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
+      this.helpRect.classList.add('cu-help-line')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
@@ -319,7 +321,7 @@ export default class TableColumnControl {
     $holder.addEventListener('mousedown', handleMousedown, false)
   }
 
-  colToolCells () {
+  colToolCells() {
     return Array.from(this.domNode.querySelectorAll('.cu-col-tool-cell'))
   }
 }
