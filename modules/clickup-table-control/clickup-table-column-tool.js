@@ -185,6 +185,7 @@ export default class TableColumnControl {
 
       $helpLine = document.createElement('div')
       $helpLine.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line-col')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
@@ -215,6 +216,7 @@ export default class TableColumnControl {
 
       $helpLine = document.createElement('div')
       $helpLine.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line-col')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
@@ -302,6 +304,7 @@ export default class TableColumnControl {
 
       $helpLine = document.createElement('div')
       $helpLine.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line-col')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,

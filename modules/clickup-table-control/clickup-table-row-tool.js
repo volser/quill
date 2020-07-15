@@ -10,7 +10,7 @@ const ROW_TOOL_CELL_WIDTH = 12
 const PRIMARY_COLOR = '#35A7ED'
 
 export default class TableRowControl {
-  constructor (table, quill, options) {
+  constructor(table, quill, options) {
     if (!table) return null
     this.table = table
     this.quill = quill
@@ -21,7 +21,7 @@ export default class TableRowControl {
     this.initRowTool()
   }
 
-  initRowTool () {
+  initRowTool() {
     const parent = this.quill.root.parentNode
     const tableRect = this.table.getBoundingClientRect()
     const containerRect = parent.getBoundingClientRect()
@@ -40,7 +40,7 @@ export default class TableRowControl {
     })
   }
 
-  createToolCell () {
+  createToolCell() {
     const toolCell = document.createElement('div')
     toolCell.classList.add('cu-row-tool-cell')
     css(toolCell, {
@@ -74,7 +74,7 @@ export default class TableRowControl {
     return toolCell
   }
 
-  updateToolCells () {
+  updateToolCells() {
     const tableContainer = Quill.find(this.table)
     if (!tableContainer) {
       const tableModule = this.quill.getModule('table')
@@ -121,7 +121,7 @@ export default class TableRowControl {
     })
   }
 
-  destroy () {
+  destroy() {
     this.domNode.remove()
     return null
   }
@@ -166,6 +166,8 @@ export default class TableRowControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
+      $helpLine.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line-row')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top - 1}px`,
@@ -198,6 +200,8 @@ export default class TableRowControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
+      $helpLine.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line-row')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top + cellRect.height - 1}px`,
