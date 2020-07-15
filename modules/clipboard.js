@@ -63,6 +63,11 @@ const STYLE_ATTRIBUTORS = [
   return memo;
 }, {});
 
+const isExistTableInTheHTMLString = (htmlStr) => {
+  const normalizedHtmlStr = htmlStr.replace(/[\r\n]/g,"")
+  return new RegExp(/<(table).*\<\/\1\>/, 'i').test(normalizedHtmlStr)
+}
+
 class Clipboard extends Module {
   constructor(quill, options) {
     super(quill, options);
@@ -157,6 +162,10 @@ class Clipboard extends Module {
     if (thisLeaf && thisLeaf.constructor.name === 'TableCellLine') {
       const html = e.clipboardData.getData('text/html');
       const text = e.clipboardData.getData('text/plain');
+
+      // bugfix: Disable pasting tables inside the table it breaks the structure
+      if (isExistTableInTheHTMLString(html)) return false
+
       const files = Array.from(e.clipboardData.files || []);
       if (!html && files.length > 0) {
         this.quill.uploader.upload(range, files);
