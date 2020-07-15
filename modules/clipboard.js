@@ -21,7 +21,7 @@ import { DirectionAttribute, DirectionStyle } from '../formats/direction';
 import { FontStyle } from '../formats/font';
 import { SizeStyle } from '../formats/size';
 // clickup: utils
-import { _omit } from './clickup-table/utils'
+import { _omit } from './clickup-table/utils';
 
 const debug = logger('quill:clipboard');
 
@@ -36,7 +36,7 @@ const CLIPBOARD_CONFIG = [
   ['li', matchIndent],
   ['ol, ul', matchList],
   ['pre', matchCodeBlock],
-  // ['tr', matchTable], // clickup: remove the quilljs built-in matcher 
+  // ['tr', matchTable], // clickup: remove the quilljs built-in matcher
   ['b', matchAlias.bind(matchAlias, 'bold')],
   ['i', matchAlias.bind(matchAlias, 'italic')],
   ['strike', matchAlias.bind(matchAlias, 'strike')],
@@ -149,10 +149,11 @@ class Clipboard extends Module {
   onCapturePaste(e) {
     if (e.defaultPrevented || !this.quill.isEnabled()) return;
     e.preventDefault();
+    if (this.options.onCapturePaste.call(this, e)) return;
     const range = this.quill.getSelection(true);
 
     // Process pasting in table-cell-line before
-    const [thisLeaf] = this.quill.getLine(range.index)
+    const [thisLeaf] = this.quill.getLine(range.index);
     if (thisLeaf && thisLeaf.constructor.name === 'TableCellLine') {
       const html = e.clipboardData.getData('text/html');
       const text = e.clipboardData.getData('text/plain');
@@ -227,36 +228,37 @@ class Clipboard extends Module {
     return [elementMatchers, textMatchers];
   }
 
-  onTableCellPaste(range, {text, html}) {
+  onTableCellPaste(range, { text, html }) {
     const [line] = this.quill.getLine(range.index);
     const lineFormats = line.formats();
     const formats = this.quill.getFormat(range.index);
-    let pastedDelta = this.convert({text, html}, formats)
+    let pastedDelta = this.convert({ text, html }, formats);
 
     pastedDelta = pastedDelta.reduce((newDelta, op) => {
       if (op.insert && typeof op.insert === 'string') {
-        const lines = []
-        let insertStr = op.insert
-        let start = 0
+        const lines = [];
+        let insertStr = op.insert;
+        let start = 0;
         for (let i = 0; i < op.insert.length; i++) {
           if (insertStr.charAt(i) === '\n') {
             if (i === 0) {
-              lines.push('\n')
+              lines.push('\n');
             } else {
-              lines.push(insertStr.substring(start, i))
-              lines.push('\n')
+              lines.push(insertStr.substring(start, i));
+              lines.push('\n');
             }
-            start = i + 1
+            start = i + 1;
           }
         }
 
-        const tailStr = insertStr.substring(start)
-        if (tailStr) lines.push(tailStr)
-        
+        const tailStr = insertStr.substring(start);
+        if (tailStr) lines.push(tailStr);
+
         lines.forEach(text => {
           if (text === '\n') {
-            if (op.attributes && op.attributes.list) {  // specify for paste list into table cell
-              const tableCellLineAttrs = lineFormats['table-cell-line']
+            if (op.attributes && op.attributes.list) {
+              // specify for paste list into table cell
+              const tableCellLineAttrs = lineFormats['table-cell-line'];
               const listItemAttrs = extend(
                 {},
                 op.attributes,
@@ -266,33 +268,26 @@ class Clipboard extends Module {
                   'list-container': false,
                   list: {
                     list: op.attributes.list.list,
-                    ...tableCellLineAttrs
+                    ...tableCellLineAttrs,
                   },
-                  ...tableCellLineAttrs
-                }
-              )
-              newDelta.insert('\n', extend(
-                {},
-                op.attributes,
-                listItemAttrs
-              ))
-            } else { // normal block line
-              newDelta.insert('\n', extend(
-                {},
-                op.attributes,
-                lineFormats
-              ))
-            } 
+                  ...tableCellLineAttrs,
+                },
+              );
+              newDelta.insert('\n', extend({}, op.attributes, listItemAttrs));
+            } else {
+              // normal block line
+              newDelta.insert('\n', extend({}, op.attributes, lineFormats));
+            }
           } else {
-            newDelta.insert(text, op.attributes)
+            newDelta.insert(text, op.attributes);
           }
-        })
+        });
       } else {
-        newDelta.insert(op.insert, op.attributes)
+        newDelta.insert(op.insert, op.attributes);
       }
 
-      return newDelta
-    }, new Delta())
+      return newDelta;
+    }, new Delta());
 
     debug.log('onTableCellPaste', pastedDelta, { text, html });
     const delta = new Delta()
@@ -535,19 +530,15 @@ function matchList(node, delta) {
     if (op.attributes && op.attributes['list']) {
       newDelta.insert(
         op.insert,
-        Object.assign(
-          {},
-          op.attributes,
-          {
-            list: { list }
-          }
-        )
-      )
+        Object.assign({}, op.attributes, {
+          list: { list },
+        }),
+      );
     } else {
-      newDelta.push(op)
+      newDelta.push(op);
     }
-    return newDelta
-  }, new Delta())
+    return newDelta;
+  }, new Delta());
 }
 
 function matchNewline(node, delta, scroll) {
