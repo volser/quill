@@ -184,7 +184,7 @@ export default class TableColumnControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
-      this.helpRect.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
@@ -214,7 +214,7 @@ export default class TableColumnControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
-      this.helpRect.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
@@ -301,7 +301,7 @@ export default class TableColumnControl {
       cellRect = cell.getBoundingClientRect()
 
       $helpLine = document.createElement('div')
-      this.helpRect.classList.add('cu-help-line')
+      $helpLine.classList.add('cu-help-line')
       css($helpLine, {
         position: 'fixed',
         top: `${cellRect.top}px`,
