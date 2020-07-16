@@ -131,16 +131,23 @@ class Table extends Module {
 
   insertTable(rows, columns) {
     const range = this.quill.getSelection(true)
+    const [currentLine, offset] = this.quill.getLine(range.index)
     if (range == null) return
     let currentBlot = this.quill.getLeaf(range.index)[0]
     let delta = new Delta().retain(range.index)
-
+    // prevent insert table in a table cell
     if (isInTableCell(currentBlot)) {
       console.warn(`Can not insert table into a table cell.`)
       return;
     }
 
-    delta.insert('\n')
+    // check whether to insert a empty line before the new table
+    if (
+      (!currentLine.prev && offset === 0) ||
+      (currentLine && offset !== 0)
+    ) {
+      delta.insert('\n')
+    }
     // insert table column
     delta = new Array(columns).fill('\n').reduce((memo, text) => {
       memo.insert(text, { 'table-col': true })
@@ -155,8 +162,16 @@ class Table extends Module {
       }, memo)
     }, delta)
 
+    // check whether to remove a empty line after the new table
+    if (currentLine.next && offset === 0) {
+      delta.delete(1)
+    }
+
     this.quill.updateContents(delta, Quill.sources.USER)
-    this.quill.setSelection(range.index + columns + 1, Quill.sources.API)
+    this.quill.setSelection(
+      !currentLine.prev ? range.index + columns + 1 : range.index + columns,
+      Quill.sources.API
+    )
   }
 
   listenBalanceCells() {
