@@ -141,19 +141,21 @@ export default class TableColumnControl {
 
   setCellToActive(cell) {
     cell.classList.add('active')
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
     const cellRect = cell.getBoundingClientRect()
     const tableViewRect = this.table.parentNode.getBoundingClientRect()
     this.helpRect = document.createElement('div')
     this.helpRect.classList.add('cu-help-rect')
     css(this.helpRect, {
-      position: 'fixed',
+      position: 'absolute',
       width: `${cellRect.width}px`,
       height: `${tableViewRect.height}px`,
-      top: `${tableViewRect.top}px`,
-      left: `${cellRect.left}px`,
+      left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
+      top: `${cellRect.top - containerRect.top + parent.scrollTop + cellRect.height}px`,
       zIndex: `${this.options.zIndex || 100}`
     })
-    document.body.appendChild(this.helpRect)
+    parent.appendChild(this.helpRect)
   }
 
   setCellToInActive(cell) {

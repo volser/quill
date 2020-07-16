@@ -607,6 +607,10 @@ class TableView extends Container {
       const tableModule = quill.getModule('table')
       if (tableModule.columnTool) {
         tableModule.columnTool.domNode.scrollLeft = e.target.scrollLeft
+
+        if (tableModule.columnTool.activeDropdown) {
+          tableModule.columnTool.activeDropdown.destroy()
+        }
       }
     }, false)
   }

@@ -22,6 +22,8 @@ export default class TableColumnDropdown {
   }
 
   initDropdown() {
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
     this.domNode = document.createElement('div')
     this.domNode.classList.add('cu-col-tool-dropdown')
 
@@ -45,13 +47,12 @@ export default class TableColumnDropdown {
 
     const cellRect = this.toolCell.getBoundingClientRect()
     css(this.domNode, {
-      position: 'fixed',
-      top: `${cellRect.top + cellRect.height}px`,
-      left: `${cellRect.left + cellRect.width / 2}px`,
+      position: 'absolute',
+      left: `${cellRect.left - containerRect.left + parent.scrollLeft + cellRect.width / 2}px`,
+      top: `${cellRect.top - containerRect.top + parent.scrollTop + cellRect.height}px`,
       zIndex: `${(this.options.zIndex + 1) || 101}`
     })
-
-    document.body.appendChild(this.domNode)
+    parent.appendChild(this.domNode)
   }
 
   destroy() {
