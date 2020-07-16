@@ -167,11 +167,13 @@ class Table extends Module {
       delta.delete(1)
     }
 
-    this.quill.updateContents(delta, Quill.sources.USER)
-    this.quill.setSelection(
-      !currentLine.prev ? range.index + columns + 1 : range.index + columns,
-      Quill.sources.API
-    )
+    if ((!currentLine.prev && offset === 0) || (currentLine && offset !== 0)) {
+      this.quill.updateContents(delta, Quill.sources.USER)
+      this.quill.setSelection(range.index + columns + 1, 0, Quill.sources.API)
+    } else {
+      this.quill.updateContents(delta, Quill.sources.USER)
+      this.quill.setSelection(range.index + columns, 0, Quill.sources.API)
+    }
   }
 
   listenBalanceCells() {
