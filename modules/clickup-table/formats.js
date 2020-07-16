@@ -679,23 +679,7 @@ class ListContainer extends Container {
       })
     }
 
-    // ShadowBlot optimize
-    this.enforceAllowedChildren();
-    if (this.uiNode != null && this.uiNode !== this.domNode.firstChild) {
-      this.domNode.insertBefore(this.uiNode, this.domNode.firstChild);
-    }
-    if (this.children.length === 0) {
-      if (this.statics.defaultChild != null) {
-        const child = this.scroll.create(this.statics.defaultChild.blotName);
-        this.appendChild(child);
-        // TODO double check if necessary
-        // child.optimize(context);
-      } else {
-        this.remove();
-      }
-    }
-    // Block optimize
-    this.cache = {};
+    super.optimize(context)
   }
 }
 ListContainer.blotName = 'list-container';
