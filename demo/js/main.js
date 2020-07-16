@@ -45,22 +45,22 @@ window.onload = () => {
     }
   })
 
-  const config = {
-    app: 'quilljs',
-    username: (Math.random() * 1000).toFixed(0),
-    autoStart: true,
-    showUI: false,
-    showCursor: true,
-    cursorAlwaysOn: true,
-    editor: quill,
-    docId: 'id'
-  };
-  const codox = new Codox();
-  codox.start(config);
+  // const config = {
+  //   app: 'quilljs',
+  //   username: (Math.random() * 1000).toFixed(0),
+  //   autoStart: true,
+  //   showUI: false,
+  //   showCursor: true,
+  //   cursorAlwaysOn: true,
+  //   editor: quill,
+  //   docId: 'id'
+  // };
+  // const codox = new Codox();
+  // codox.start(config);
 
-  quill.on('text-change', (newDelta, oldContents, source) => {
-    console.log(newDelta)
-  })
+  // quill.on('text-change', (newDelta, oldContents, source) => {
+  //   console.log(newDelta)
+  // })
 
   window.quill = quill
   // test parse old table delta to new

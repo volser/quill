@@ -532,14 +532,14 @@ Keyboard.DEFAULTS = {
       format: ['table-cell-line'],
       handler(range, context) {
         const { event, line: cellLine } = context;
-        const offset = cellLine.offset(this.quill.scroll);
+        const cellIndex = this.quill.getIndex(cellLine.parent)
         event.preventDefault()
 
         if (event.shiftKey) {
-          this.quill.setSelection(offset - 1, Quill.sources.USER);
+          this.quill.setSelection(cellIndex - 1, Quill.sources.USER);
         } else {
           const tableCell = cellLine.parent
-          this.quill.setSelection(offset + tableCell.length(), Quill.sources.USER);
+          this.quill.setSelection(cellIndex + tableCell.length(), Quill.sources.USER);
         }
         return false
       },
@@ -662,8 +662,10 @@ Keyboard.DEFAULTS = {
     'embed left shift': makeEmbedArrowHandler('ArrowLeft', true),
     'embed right': makeEmbedArrowHandler('ArrowRight', false),
     'embed right shift': makeEmbedArrowHandler('ArrowRight', true),
-    'table down': makeTableArrowHandler(false),
-    'table up': makeTableArrowHandler(true),
+    'table-cell-line down': makeTableArrowHandler(false),
+    'table-cell-line up': makeTableArrowHandler(true),
+    'list table down': makeTableListArrowHandler(false),
+    'list tbale up': makeTableListArrowHandler(true)
   },
 };
 
@@ -757,40 +759,77 @@ function makeTableArrowHandler(up) {
   return {
     key: up ? 'ArrowUp' : 'ArrowDown',
     collapsed: true,
-    format: ['table'],
+    format: ['table-cell-line'],
     handler(range, context) {
-      // TODO move to table module
       const key = up ? 'prev' : 'next';
-      const cell = context.line;
-      const targetRow = cell.parent[key];
-      if (targetRow != null) {
-        if (targetRow.statics.blotName === 'table-row') {
-          let targetCell = targetRow.children.head;
-          let cur = cell;
-          while (cur.prev != null) {
-            cur = cur.prev;
-            targetCell = targetCell.next;
-          }
-          const index =
-            targetCell.offset(this.quill.scroll) +
-            Math.min(context.offset, targetCell.length() - 1);
-          this.quill.setSelection(index, 0, Quill.sources.USER);
-        }
+      const cellLine = context.line;
+      let targetBlot = cellLine[key];
+      if (targetBlot) {
+        return true
       } else {
-        const targetLine = cell.table()[key];
-        if (targetLine != null) {
+        const curCell = cellLine.parent
+        const curRow = curCell.parent
+        const curCellIndex = curRow.children.indexOf(curCell)
+        const targetRow = curRow[key]
+        if (targetRow !== null) {
+          if (targetRow.statics.blotName === 'table-row') {
+            const targetCell = targetRow.children.at(curCellIndex)
+            const targetCellIndex = this.quill.getIndex(targetCell)
+            if (up) {
+              this.quill.setSelection(targetCellIndex + targetCell.length() - 1, 0, Quill.sources.USER)
+            } else {
+              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER)
+            }
+          }
+        } else {
+          const curTableView = curCell.table().parent
+          const curTableViewStartIndex = this.quill.getIndex(curTableView)
           if (up) {
-            this.quill.setSelection(
-              targetLine.offset(this.quill.scroll) + targetLine.length() - 1,
-              0,
-              Quill.sources.USER,
-            );
+            this.quill.setSelection(curTableViewStartIndex - 1, 0, Quill.sources.USER)
           } else {
-            this.quill.setSelection(
-              targetLine.offset(this.quill.scroll),
-              0,
-              Quill.sources.USER,
-            );
+            this.quill.setSelection(curTableViewStartIndex + curTableView.length(), 0, Quill.sources.USER)
+          }
+        }
+      }
+      return false;
+    },
+  };
+}
+
+function makeTableListArrowHandler(up) {
+  return {
+    key: up ? 'ArrowUp' : 'ArrowDown',
+    collapsed: true,
+    format: ['list', 'cell', 'row'],
+    handler(range, context) {
+      const key = up ? 'prev' : 'next';
+      const listItem = context.line;
+      const listContainer = listItem.parent
+      let targetBlot = listItem[key];
+      if (targetBlot || listContainer[key]) {
+        return true
+      } else {
+        const curCell = listContainer.parent
+        const curRow = curCell.parent
+        const curCellIndex = curRow.children.indexOf(curCell)
+        const targetRow = curRow[key]
+        if (targetRow !== null) {
+          if (targetRow.statics.blotName === 'table-row') {
+            const targetCell = targetRow.children.at(curCellIndex)
+            const targetCellIndex = this.quill.getIndex(targetCell)
+            if (up) {
+              this.quill.setSelection(targetCellIndex + targetCell.length() - 1, 0, Quill.sources.USER)
+            } else {
+              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER)
+            }
+          }
+        } else {
+          const curTableView = curCell.table().parent
+          const curTableViewStartIndex = this.quill.getIndex(curTableView)
+          if (up) {
+            this.quill.setSelection(curTableViewStartIndex - 1, 0, Quill.sources.USER)
+          } else {
+            this.quill.setSelection(curTableViewStartIndex + curTableView.length(), 0, Quill.sources.USER)
           }
         }
       }
