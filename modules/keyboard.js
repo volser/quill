@@ -350,7 +350,10 @@ Keyboard.DEFAULTS = {
       key: 'Tab',
       handler(range, context) {
         // clickup: return true if the cursor is in a table cell line
-        if (context.format['table-cell-line']) return true
+        if (
+          context.format['table-cell-line'] ||
+          (context.format['list'] && context.format['cell'] && context.format['row'])
+        ) return true
         if (context.format.table) return true;
         this.quill.history.cutoff();
         const delta = new Delta()
@@ -561,6 +564,27 @@ Keyboard.DEFAULTS = {
         )
         return false
       }
+    },
+
+    'list table tab': {
+      key: 'Tab',
+      shiftKey: null,
+      collapsed: true,
+      format: ['list', 'cell', 'row'],
+      handler(range, context) {
+        const { event, line: listItem } = context;
+        const listContainer = listItem.parent
+        const parentCell = listContainer.parent
+        const cellIndex = this.quill.getIndex(parentCell)
+        event.preventDefault()
+
+        if (event.shiftKey) {
+          this.quill.setSelection(cellIndex - 1, Quill.sources.USER);
+        } else {
+          this.quill.setSelection(cellIndex + parentCell.length(), Quill.sources.USER);
+        }
+        return false
+      },
     },
 
     'list table A': {
