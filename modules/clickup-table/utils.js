@@ -87,7 +87,8 @@ export function tableDeltaParser(oldDelta) {
           }
         })
       } else if (op.attributes &&
-        op.attributes.list) {
+        op.attributes.list &&
+        typeof op.attributes.list === 'string') {
         newDelta.insert(op.insert, Object.assign(
           {},
           op.attributes,
