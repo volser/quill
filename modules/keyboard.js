@@ -800,7 +800,7 @@ function makeTableArrowHandler(up) {
     format: ['table-cell-line'],
     handler(range, context) {
       if (isMentionsDropDownOpened(this.quill)) {
-        return false
+        return true
       }
 
       const key = up ? 'prev' : 'next';
@@ -846,7 +846,7 @@ function makeTableListArrowHandler(up) {
     format: ['list', 'cell', 'row'],
     handler(range, context) {
       if (isMentionsDropDownOpened(this.quill)) {
-        return false
+        return true
       }
 
       const key = up ? 'prev' : 'next';
