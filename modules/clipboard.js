@@ -533,7 +533,13 @@ function matchIndent(node, delta, scroll) {
 
 // clickup: modify the matcher of list
 function matchList(node, delta) {
-  const list = node.tagName === 'OL' ? 'ordered' : 'bullet';
+  const firstListItem = node.childNodes[0]
+  let list = firstListItem.getAttribute('data-list')
+
+  if (!list) {
+    list = node.tagName === 'OL' ? 'ordered' : 'bullet';
+  }
+
   const formatted = applyFormat(delta, 'list', list);
   return formatted.reduce((newDelta, op) => {
     if (op.attributes && op.attributes['list']) {
