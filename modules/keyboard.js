@@ -788,15 +788,25 @@ function makeFormatHandler(format) {
   };
 }
 
+function isMentionsDropDownOpened(quill) {
+  const mentions = quill.getModule('mentions')
+  return mentions.dialogShown
+}
+
 function makeTableArrowHandler(up) {
   return {
     key: up ? 'ArrowUp' : 'ArrowDown',
     collapsed: true,
     format: ['table-cell-line'],
     handler(range, context) {
+      if (isMentionsDropDownOpened(this.quill)) {
+        return false
+      }
+
       const key = up ? 'prev' : 'next';
       const cellLine = context.line;
       let targetBlot = cellLine[key];
+
       if (targetBlot) {
         return true
       } else {
@@ -835,6 +845,10 @@ function makeTableListArrowHandler(up) {
     collapsed: true,
     format: ['list', 'cell', 'row'],
     handler(range, context) {
+      if (isMentionsDropDownOpened(this.quill)) {
+        return false
+      }
+
       const key = up ? 'prev' : 'next';
       const listItem = context.line;
       const listContainer = listItem.parent
