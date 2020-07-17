@@ -15,6 +15,9 @@ const CELL_DEFAULT = {
   colspan: 1
 }
 
+const WIDE_TABLE_CLASS = 'clickup-table_wide';
+const WIDE_TABLE_WIDTH = 730;
+
 class TableCellLine extends Block {
   static create(value) {
     const node = super.create(value)
@@ -177,7 +180,7 @@ class TableCell extends Container {
     }, formats)
   }
 
-  toggleAttribute (name, value) {
+  toggleAttribute(name, value) {
     if (value) {
       this.domNode.setAttribute(name, value)
     } else {
@@ -185,7 +188,7 @@ class TableCell extends Container {
     }
   }
 
-  formatChildren (name, value) {
+  formatChildren(name, value) {
     this.children.forEach(child => {
       child.format(name, value)
     })
@@ -265,7 +268,7 @@ class TableRow extends Container {
     }, {})
   }
 
-  optimize (context) {
+  optimize(context) {
     // optimize function of ShadowBlot
     if (
       this.statics.requiredContainer &&
@@ -291,12 +294,12 @@ class TableRow extends Container {
 TableRow.blotName = "table-row"
 TableRow.tagName = "TR"
 
-class TableBody extends Container {}
+class TableBody extends Container { }
 TableBody.blotName = "table-body"
 TableBody.tagName = "TBODY"
 
 class TableCol extends Block {
-  static create (value) {
+  static create(value) {
     let node = super.create(value)
     COL_ATTRIBUTES.forEach(attrName => {
       node.setAttribute(`${attrName}`, value[attrName] || COL_DEFAULT[attrName])
@@ -320,14 +323,14 @@ class TableCol extends Block {
     }
   }
 
-  html () {
+  html() {
     return this.domNode.outerHTML
   }
 }
 TableCol.blotName = "table-col"
 TableCol.tagName = "col"
 
-class TableColGroup extends Container {}
+class TableColGroup extends Container { }
 TableColGroup.blotName = "table-col-group"
 TableColGroup.tagName = "colgroup"
 
@@ -337,12 +340,12 @@ class TableContainer extends Container {
     return node
   }
 
-  constructor (scroll, domNode) {
+  constructor(scroll, domNode) {
     super(scroll, domNode)
     this.updateTableWidth()
   }
 
-  balanceCells () {
+  balanceCells() {
     if (this.descendants(TableCell).length <= 0) {
       this.remove()
       return false
@@ -383,7 +386,7 @@ class TableContainer extends Container {
   }
 
   // call this when a table was broken
-  rebuildWholeTable () {
+  rebuildWholeTable() {
     let colGroup = this.colGroup()
     const [body] = this.descendants(TableBody)
     const rows = this.descendants(TableRow);
@@ -440,7 +443,7 @@ class TableContainer extends Container {
     });
   }
 
-  updateTableWidth () {
+  updateTableWidth() {
     setTimeout(() => {
       const colGroup = this.colGroup()
       if (!colGroup) return
@@ -449,6 +452,11 @@ class TableContainer extends Container {
         return sumWidth
       }, 0)
       this.domNode.style.width = `${tableWidth}px`
+      if (tableWidth > WIDE_TABLE_WIDTH) {
+        this.domNode.classList.add(WIDE_TABLE_CLASS);
+      } else {
+        this.domNode.classList.remove(WIDE_TABLE_CLASS);
+      }
     }, 0)
   }
 
@@ -463,7 +471,7 @@ class TableContainer extends Container {
     return this.rows().map(row => row.children.at(column))
   }
 
-  colGroup () {
+  colGroup() {
     return (
       this.children.head instanceof TableColGroup &&
       this.children.head
@@ -596,7 +604,7 @@ TableContainer.className = "clickup-table"
 TableContainer.tagName = "TABLE"
 
 class TableView extends Container {
-  constructor (scroll, domNode) {
+  constructor(scroll, domNode) {
     super(scroll, domNode)
     const quill = Quill.find(scroll.domNode.parentNode)
     domNode.addEventListener('scroll', (e) => {
@@ -611,7 +619,7 @@ class TableView extends Container {
     }, false)
   }
 
-  table () {
+  table() {
     return this.children.head
   }
 }
@@ -752,7 +760,7 @@ class ListItem extends Block {
           row, cell, rowspan, colspan
         })
       } else {
-        if(row && cell) {
+        if (row && cell) {
           this.replaceWith(TableCellLine.blotName, {
             row,
             cell,
