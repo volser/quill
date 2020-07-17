@@ -790,7 +790,7 @@ function makeFormatHandler(format) {
 
 function isMentionsDropDownOpened(quill) {
   const mentions = quill.getModule('mentions')
-  return mentions.dialogShown
+  return mentions && mentions.dialogShown
 }
 
 function makeTableArrowHandler(up) {
