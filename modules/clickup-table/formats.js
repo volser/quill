@@ -412,9 +412,7 @@ class TableContainer extends Container {
         })
       } else if (differ < 0) {
         new Array(Math.abs(differ)).fill(0).forEach(() => {
-          colGroup.removeChild(
-            colGroup.children.at(colGroup.children.length - 1)
-          )
+          colGroup.children.tail.remove()
         })
       }
     }
