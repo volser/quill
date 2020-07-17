@@ -15,7 +15,7 @@ const CELL_DEFAULT = {
   colspan: 1
 }
 
-const WIDE_TABLE_CLASS = 'clickup-table_wide';
+const WIDE_TABLE_CLASS = 'clickup-table-view_wide';
 const WIDE_TABLE_WIDTH = 730;
 
 class TableCellLine extends Block {
@@ -453,9 +453,9 @@ class TableContainer extends Container {
       }, 0)
       this.domNode.style.width = `${tableWidth}px`
       if (tableWidth > WIDE_TABLE_WIDTH) {
-        this.domNode.classList.add(WIDE_TABLE_CLASS);
+        this.domNode.parentNode.classList.add(WIDE_TABLE_CLASS);
       } else {
-        this.domNode.classList.remove(WIDE_TABLE_CLASS);
+        this.domNode.parentNode.classList.remove(WIDE_TABLE_CLASS);
       }
     }, 0)
   }
