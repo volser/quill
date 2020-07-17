@@ -485,6 +485,15 @@ Keyboard.DEFAULTS = {
     //   },
     // },
     // clickup: Add customize events for table-cell-line
+    'table-col enter': {
+      key: 'Enter',
+      format: ['table-col'],
+      collapsed: true,
+      handler() {
+        return false
+      }
+    },
+
     'table-cell-line backspace': {
       key: 'Backspace',
       format: ['table-cell-line'],
