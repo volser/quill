@@ -755,6 +755,10 @@ class ListItem extends Block {
     const { row, cell, rowspan, colspan, list } = ListItem.formats(this.domNode)
     if (name === ListItem.blotName) {
       if (value) {
+        if (typeof value === 'object') {
+          value = value.list
+        }
+
         super.format(name, {
           list: value,
           row, cell, rowspan, colspan
