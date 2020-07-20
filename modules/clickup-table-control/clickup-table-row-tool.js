@@ -145,10 +145,12 @@ export default class TableRowControl {
   }
 
   addInertRowButtonHanler(cell) {
+    const parent = this.quill.root.parentNode
     const tableContainer = Quill.find(this.table)
     const $buttonTop = cell.querySelector(".cu-row-tool-cell-add-row-top")
     const $buttonBottom = cell.querySelector(".cu-row-tool-cell-add-row-bottom")
     // helpline relative vars
+    let containerRect
     let tableRect
     let tableViewRect
     let cellRect
@@ -161,6 +163,7 @@ export default class TableRowControl {
     }, false)
 
     $buttonTop.addEventListener('mouseover', () => {
+      containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
@@ -169,9 +172,9 @@ export default class TableRowControl {
       $helpLine.classList.add('cu-help-line')
       $helpLine.classList.add('cu-help-line-row')
       css($helpLine, {
-        position: 'fixed',
-        top: `${cellRect.top - 1}px`,
-        left: `${cellRect.left}px`,
+        position: 'absolute',
+        left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
+        top: `${cellRect.top - containerRect.top + parent.scrollTop - 1}px`,
         zIndex: `${this.options.zIndex || 100}`,
         width: `${Math.min(
           tableViewRect.width + ROW_TOOL_CELL_WIDTH,
@@ -180,7 +183,7 @@ export default class TableRowControl {
         height: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      document.body.appendChild($helpLine)
+      parent.appendChild($helpLine)
     }, false)
 
     $buttonTop.addEventListener('mouseout', () => {
@@ -195,6 +198,7 @@ export default class TableRowControl {
     }, false)
 
     $buttonBottom.addEventListener('mouseover', () => {
+      containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
@@ -203,9 +207,9 @@ export default class TableRowControl {
       $helpLine.classList.add('cu-help-line')
       $helpLine.classList.add('cu-help-line-row')
       css($helpLine, {
-        position: 'fixed',
-        top: `${cellRect.top + cellRect.height - 1}px`,
-        left: `${cellRect.left}px`,
+        position: 'absolute',
+        left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
+        top: `${cellRect.top - containerRect.top + parent.scrollTop - 1 + cellRect.height}px`,
         zIndex: `${this.options.zIndex || 100}`,
         width: `${Math.min(
           tableViewRect.width + ROW_TOOL_CELL_WIDTH,
@@ -214,7 +218,7 @@ export default class TableRowControl {
         height: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      document.body.appendChild($helpLine)
+      parent.appendChild($helpLine)
     }, false)
 
     $buttonBottom.addEventListener('mouseout', () => {

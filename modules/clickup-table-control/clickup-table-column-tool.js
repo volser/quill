@@ -165,10 +165,12 @@ export default class TableColumnControl {
   }
 
   addInertColumnButtonHanler(cell) {
+    const parent = this.quill.root.parentNode
     const tableContainer = Quill.find(this.table)
     const $buttonRight = cell.querySelector(".cu-col-tool-cell-add-col-right")
     const $buttonLeft = cell.querySelector(".cu-col-tool-cell-add-col-left")
     // helpline relative vars
+    let containerRect
     let tableRect
     let tableViewRect
     let cellRect
@@ -181,6 +183,7 @@ export default class TableColumnControl {
     }, false)
 
     $buttonLeft.addEventListener('mouseover', () => {
+      containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
@@ -189,15 +192,15 @@ export default class TableColumnControl {
       $helpLine.classList.add('cu-help-line')
       $helpLine.classList.add('cu-help-line-col')
       css($helpLine, {
-        position: 'fixed',
-        top: `${cellRect.top}px`,
-        left: `${cellRect.left - 1}px`,
+        position: 'absolute',
+        left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
+        top: `${cellRect.top - containerRect.top + parent.scrollTop}px`,
         zIndex: `${this.options.zIndex || 100}`,
         height: `${tableViewRect.height + COL_TOOL_HEIGHT - COL_TOOL_ADD_BUTTON_HEIGHT}px`,
         width: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      document.body.appendChild($helpLine)
+      parent.appendChild($helpLine)
     }, false)
 
     $buttonLeft.addEventListener('mouseout', () => {
@@ -212,6 +215,7 @@ export default class TableColumnControl {
     }, false)
 
     $buttonRight.addEventListener('mouseover', () => {
+      containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
@@ -220,15 +224,15 @@ export default class TableColumnControl {
       $helpLine.classList.add('cu-help-line')
       $helpLine.classList.add('cu-help-line-col')
       css($helpLine, {
-        position: 'fixed',
-        top: `${cellRect.top}px`,
-        left: `${cellRect.left + cellRect.width - 1}px`,
+        position: 'absolute',
+        left: `${cellRect.left + cellRect.width - containerRect.left + parent.scrollLeft - 2}px`,
+        top: `${cellRect.top - containerRect.top + parent.scrollTop}px`,
         zIndex: `${this.options.zIndex || 100}`,
         height: `${tableViewRect.height + COL_TOOL_HEIGHT - COL_TOOL_ADD_BUTTON_HEIGHT}px`,
         width: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      document.body.appendChild($helpLine)
+      parent.appendChild($helpLine)
     }, false)
 
     $buttonRight.addEventListener('mouseout', () => {
