@@ -26,6 +26,7 @@ import { getEventComposedPath } from '../clickup-table-control/utils'
 import TableColumnTool from '../clickup-table-control/clickup-table-column-tool'
 import TableRowTool from '../clickup-table-control/clickup-table-row-tool'
 import TableTableTool from '../clickup-table-control/clickup-table-table-tool'
+import { textSpanIntersectsWith } from 'typescript';
 
 class Table extends Module {
   static register() {
@@ -79,6 +80,14 @@ class Table extends Module {
         this.hideTableTools()
       }
     }, false)
+
+    document.body.addEventListener('scroll', e => {
+      if (this.table) {
+        this.columnTool && this.columnTool.reposition()
+        this.rowTool && this.rowTool.reposition()
+        this.tableTool && this.tableTool.reposition()
+      }
+    }, true)
 
     quill.clipboard.addMatcher('td', matchTableCell)
     quill.clipboard.addMatcher('th', matchTableHeader)

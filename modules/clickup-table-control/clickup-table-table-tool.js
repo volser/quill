@@ -45,20 +45,23 @@ export default class TableTableControl {
   }
 
   setCellToActive() {
-    this.domNode.classList.add('active')
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
     const tableViewRect = this.table.parentNode.getBoundingClientRect()
     const tableRect = this.table.getBoundingClientRect()
+
+    this.domNode.classList.add('active')
     this.helpRect = document.createElement('div')
     this.helpRect.classList.add('cu-help-rect')
     css(this.helpRect, {
-      position: 'fixed',
+      position: 'absolute',
       width: `${Math.min(tableRect.width, tableViewRect.width)}px`,
       height: `${tableViewRect.height}px`,
-      top: `${tableViewRect.top}px`,
-      left: `${tableViewRect.left}px`,
+      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop}px`,
       zIndex: `${this.options.zIndex || 100}`
     })
-    document.body.appendChild(this.helpRect)
+    parent.appendChild(this.helpRect)
   }
 
   setCellToInActive() {
@@ -67,8 +70,32 @@ export default class TableTableControl {
     this.helpRect = null
   }
 
-  destroy () {
+  destroy() {
     this.domNode.remove()
     return null
+  }
+
+  reposition() {
+    // table table tool
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
+    const tableViewRect = this.table.parentNode.getBoundingClientRect()
+    css(this.domNode, {
+      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft - TableToolSize}px`,
+      top: `${tableViewRect.top - containerRect.top - TableToolSize + parent.scrollTop}px`,
+    })
+
+    // helpRect
+    if (this.helpRect) {
+      css(this.helpRect, {
+        left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
+        top: `${tableViewRect.top - containerRect.top + parent.scrollTop}px`,
+      })
+    }
+
+    // dropdown
+    if (this.activeDropdown) {
+      this.activeDropdown.reposition()
+    }
   }
 }

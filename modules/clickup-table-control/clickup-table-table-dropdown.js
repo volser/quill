@@ -43,14 +43,28 @@ export default class TableTableDropdown {
     })
 
     const tableViewRect = this.table.parentNode.getBoundingClientRect()
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
+
     css(this.domNode, {
-      position: 'fixed',
-      top: `${tableViewRect.top - TableToolSize}px`,
-      left: `${tableViewRect.left - 1}px`,
+      position: 'absolute',
+      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop}px`,
       zIndex: `${(this.options.zIndex + 1) || 101}`
     })
 
-    document.body.appendChild(this.domNode)
+    parent.appendChild(this.domNode)
+  }
+
+  reposition() {
+    const tableViewRect = this.table.parentNode.getBoundingClientRect()
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
+
+    css(this.domNode, {
+      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop}px`,
+    })
   }
 
   destroy() {

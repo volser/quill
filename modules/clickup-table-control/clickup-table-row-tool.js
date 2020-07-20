@@ -226,4 +226,15 @@ export default class TableRowControl {
       $helpLine = null
     })
   }
+
+  reposition() {
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
+    const tableViewRect = this.table.parentNode.getBoundingClientRect()
+
+    css(this.domNode, {
+      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft - ROW_TOOL_WIDTH}px`,
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop + 1}px`,
+    })
+  }
 }

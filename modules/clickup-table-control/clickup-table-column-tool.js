@@ -17,6 +17,7 @@ export default class TableColumnControl {
     this.domNode = null
     this.activeDropdown = null
     this.helpRect = null
+    this.activeCell = null
 
     this.initColTool()
   }
@@ -155,6 +156,7 @@ export default class TableColumnControl {
       top: `${cellRect.top - containerRect.top + parent.scrollTop + cellRect.height}px`,
       zIndex: `${this.options.zIndex || 100}`
     })
+    this.activeCell = cell
     parent.appendChild(this.helpRect)
   }
 
@@ -162,6 +164,7 @@ export default class TableColumnControl {
     cell.classList.remove('active')
     this.helpRect && this.helpRect.remove()
     this.helpRect = null
+    this.activeCell = null
   }
 
   addInertColumnButtonHanler(cell) {
@@ -328,6 +331,35 @@ export default class TableColumnControl {
       $holder.classList.add('dragging')
     }
     $holder.addEventListener('mousedown', handleMousedown, false)
+  }
+
+  reposition() {
+    const parent = this.quill.root.parentNode
+    const tableView = this.table.parentNode
+    const containerRect = parent.getBoundingClientRect()
+    const tableViewRect = tableView.getBoundingClientRect()
+
+    // table col tool
+    css(this.domNode, {
+      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop - COL_TOOL_HEIGHT}px`,
+    })
+    this.domNode.scrollLeft = tableView.scrollLeft
+
+    // helpRect
+    if (this.activeCell && this.helpRect) {
+      const cellRect = this.activeCell.getBoundingClientRect()
+
+      css(this.helpRect, {
+        left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
+        top: `${cellRect.top - containerRect.top + parent.scrollTop + cellRect.height}px`,
+      })
+    }
+
+    // dropdown
+    if (this.activeDropdown) {
+      this.activeDropdown.reposition()
+    }
   }
 
   colToolCells() {

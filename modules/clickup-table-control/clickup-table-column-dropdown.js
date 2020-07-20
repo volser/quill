@@ -55,6 +55,16 @@ export default class TableColumnDropdown {
     parent.appendChild(this.domNode)
   }
 
+  reposition() {
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
+    const cellRect = this.toolCell.getBoundingClientRect()
+    css(this.domNode, {
+      left: `${cellRect.left - containerRect.left + parent.scrollLeft + cellRect.width / 2}px`,
+      top: `${cellRect.top - containerRect.top + parent.scrollTop + cellRect.height}px`,
+    })
+  }
+
   destroy() {
     this.tool.setCellToInActive(this.toolCell)
     document.body.removeEventListener('click', this.destroyHandler, false)
