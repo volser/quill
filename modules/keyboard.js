@@ -698,7 +698,7 @@ Keyboard.DEFAULTS = {
     'table-cell-line down': makeTableArrowHandler(false),
     'table-cell-line up': makeTableArrowHandler(true),
     'list table down': makeTableListArrowHandler(false),
-    'list tbale up': makeTableListArrowHandler(true)
+    'list table up': makeTableListArrowHandler(true)
   },
 };
 
@@ -843,8 +843,13 @@ function makeTableListArrowHandler(up) {
   return {
     key: up ? 'ArrowUp' : 'ArrowDown',
     collapsed: true,
-    format: ['list', 'cell', 'row'],
+    format: ['list'],
     handler(range, context) {
+      const { row, cell } = context.format.list
+      if (!row || !cell) {
+        return true
+      }
+
       if (isMentionsDropDownOpened(this.quill)) {
         return true
       }
