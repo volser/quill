@@ -18,6 +18,9 @@ const oldTableDelta = new Delta({
   ]
 })
 
+const oldTableDelta2 = new Delta({"ops":[{"insert":"sdfsdfsdf\ndfdsf\nSomeText"},{"attributes":{"table":"row-z838"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-z838"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-z838"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-agrc"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-agrc"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-agrc"},"insert":"\n"},{"insert":"dsfsdf\ndsfsdf\ntext"},{"attributes":{"table":"row-d9sh"},"insert":"\n"},{"insert":"text"},{"attributes":{"table":"row-d9sh"},"insert":"\n"},{"insert":"text"},{"attributes":{"table":"row-n6jv"},"insert":"\n"},{"insert":"text"},{"attributes":{"table":"row-n6jv"},"insert":"\n"},{"insert":"sdfsdf\nsdfsdf\n"}]})
+const oldTableDelta3 = new Delta({"ops":[{"insert":"sdfsdfsdf\ndfdsf\n"},{"insert":{image: "http://img3.imgtn.bdimg.com/it/u=1267761530,2716523653&fm=26&gp=0.jpg"}},{"insert":"SomeText"},{"attributes":{"table":"row-z838"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-z838"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-z838"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-agrc"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-agrc"},"insert":"\n"},{"insert":"SomeText"},{"attributes":{"table":"row-agrc"},"insert":"\n"},{"insert":"dsfsdf\ndsfsdf\ntext"},{"attributes":{"table":"row-d9sh"},"insert":"\n"},{"insert":"text"},{"attributes":{"table":"row-d9sh"},"insert":"\n"},{"insert":"text"},{"attributes":{"table":"row-n6jv"},"insert":"\n"},{"insert":"text"},{"attributes":{"table":"row-n6jv"},"insert":"\n"},{"insert":"sdfsdf\nsdfsdf\n"}]})
+
 const oldListDelta = new Delta({
   "ops": [
     {insert: "sdsdfsdfsdf\nsdfdsfsf"},
@@ -58,13 +61,13 @@ window.onload = () => {
   // const codox = new Codox();
   // codox.start(config);
 
-  quill.on('text-change', (newDelta, oldContents, source) => {
-    console.log(newDelta)
-  })
+  // quill.on('text-change', (newDelta, oldContents, source) => {
+  //   console.log(newDelta)
+  // })
 
   window.quill = quill
   // test parse old table delta to new
-  // quill.setContents(tableDeltaParser(oldListDelta))
+  quill.setContents(tableDeltaParser(oldTableDelta2))
 
   const tableModule = quill.getModule('table')
 

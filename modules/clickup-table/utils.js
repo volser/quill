@@ -47,12 +47,42 @@ export function tableDeltaParser(oldDelta) {
           }
         }
 
-        // insert tableCol
+        // it means there is a table here: columnCount > 0
         if (columnCount > 0) {
+          // collect contents in the first cell
+          let prevOp = newDelta.ops.pop()
+          const reversedOpsInFirstCell = []
+          while (prevOp) {
+            if (typeof prevOp.insert === 'string') {
+              if (prevOp.insert.indexOf('\n') >= 0) {
+                const linesArr = prevOp.insert.split('\n')
+                const lastLine = linesArr.pop()
+                newDelta.insert(linesArr.join('\n') + '\n', prevOp.attributes)
+
+                if (!!lastLine) {
+                  reversedOpsInFirstCell.push({ insert: lastLine, attributes: prevOp.attributes || {} })
+                }
+                prevOp = null
+              } else {
+                reversedOpsInFirstCell.push(prevOp)
+                prevOp = newDelta.ops.pop()
+              }
+            } else {
+              reversedOpsInFirstCell.push(prevOp)
+              prevOp = newDelta.ops.pop()
+            }
+          }
+
+          // insert tableCol
           newDelta.insert(
             new Array(columnCount).fill(0).map(() => '\n').join(''),
             { 'table-col': { width: "150" } }
           )
+
+          // insert contents in the first cell
+          const deltaInFirstCell = new Delta(reversedOpsInFirstCell.reverse())
+          newDelta = newDelta.concat(deltaInFirstCell)
+
           columnCount = 0
         }
 
@@ -108,7 +138,7 @@ export function tableDeltaParser(oldDelta) {
 
     return newDelta
   }, new Delta())
-
+  
   return delta
 }
 // help scan the count of columns for each table in old delta
