@@ -523,8 +523,9 @@ function matchIndent(node, delta, scroll) {
     parent = parent.parentNode;
   }
   if (indent <= 0) return delta;
+
   return delta.reduce((composed, op) => {
-    if (op.attributes && op.attributes.list) {
+    if (op.attributes && typeof op.attributes.indent === 'number') {
       return composed.push(op);
     }
     return composed.insert(op.insert, { indent, ...(op.attributes || {}) });
@@ -545,9 +546,13 @@ function matchList(node, delta) {
     if (op.attributes && op.attributes['list']) {
       newDelta.insert(
         op.insert,
-        Object.assign({}, op.attributes, {
-          list: { list },
-        }),
+        Object.assign(
+          {},
+          _omit(op.attributes, ['list-container']),
+          {
+            list: { list },
+          }
+        ),
       );
     } else {
       newDelta.push(op);

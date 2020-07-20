@@ -239,6 +239,7 @@ function convertListHTML(items, lastIndent, types) {
     }
     return `</li></${endTag}>${convertListHTML([], lastIndent - 1, types)}`;
   }
+
   const [{ child, offset, length, indent, type }, ...rest] = items;
   const [tag, attribute] = getListType(type);
   if (indent > lastIndent) {
@@ -333,6 +334,10 @@ function getListType(type) {
       return [tag, ' data-list="checked"'];
     case 'unchecked':
       return [tag, ' data-list="unchecked"'];
+    case 'ordered':
+      return [tag, ' data-list="ordered"'];
+    case 'bullet':
+      return [tag, ' data-list="bullet"'];
     default:
       return [tag, ''];
   }
