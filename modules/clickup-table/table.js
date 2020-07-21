@@ -58,6 +58,20 @@ class Table extends Module {
       }
     })
 
+    // hide table tools when the cursor go out of the table
+    this.quill.on('selection-change', range => {
+      if (!range) return true
+      const [curLine] = this.quill.getLine(range.index)
+      const lineFomrats = curLine.formats()
+      
+      if (
+        !lineFomrats.TableCellLine &&
+        (!lineFomrats.list || !lineFomrats.list.row || !lineFomrats.list.cell)
+      ) {
+        this.hideTableTools()
+      }
+    })
+
     this.quill.root.addEventListener('click', (evt) => {
       const path = getEventComposedPath(evt)
 
