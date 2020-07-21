@@ -168,6 +168,7 @@ class Clipboard extends Module {
         Link.sanitize(copiedText)
       ) {
         this.quill.format('link', copiedText)
+        this.quill.setSelection(range.index + range.length, 'api')
         return;
       }
     }
