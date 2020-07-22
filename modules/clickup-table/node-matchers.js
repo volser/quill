@@ -5,6 +5,7 @@ import {
   rowId,
   cellId
 } from './table'
+import { TableCellLine } from './formats'
 
 /**
  * matchTableCell
@@ -182,6 +183,24 @@ export function matchTable(node, delta, scroll) {
 
   // bugfix: empty table will return empty delta
   if (topRow === null) return newColDelta
+
+  // optimize: Copy-paste text from one single cell to main text should not create single-cell tables
+  if (node.querySelectorAll('td').length === 1) {
+    return delta.reduce((newDelta, op) => {
+      if (op.attributes && op.attributes[TableCellLine.blotName]) {
+        newDelta.insert(op.insert, _omit(op.attributes, [TableCellLine.blotName]))
+      } else if (op.attributes && op.attributes.list && op.attributes.list.row && op.attributes.list.cell) {
+        newDelta.insert(op.insert, Object.assign(
+          {},
+          op.attributes,
+          { list: { list: op.attributes.list.list } }
+        ))
+      } else {
+        newDelta.push(op)
+      }
+      return newDelta
+    }, new Delta())
+  }
 
   const cellsInTopRow = Array.from(topRow.querySelectorAll('td'))
     .concat(Array.from(topRow.querySelectorAll('th')))
