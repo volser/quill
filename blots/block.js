@@ -124,7 +124,7 @@ class Block extends BlockBlot {
   }
 }
 Block.blotName = 'block';
-Block.tagName = 'P';
+Block.tagName = 'DIV';
 Block.defaultChild = Break;
 Block.allowedChildren = [Break, Inline, EmbedBlot, TextBlot];
 

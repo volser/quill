@@ -96,7 +96,7 @@ class TableCellLine extends Block {
 }
 TableCellLine.blotName = "table-cell-line"
 TableCellLine.className = "qlbt-cell-line"
-TableCellLine.tagName = "P"
+TableCellLine.tagName = "DIV"
 
 class TableCell extends Container {
   checkMerge() {
@@ -718,19 +718,6 @@ class ListItem extends Block {
         return formats
       }, formats)
   }
-
-  // formats () {
-  //   const formats = {}
-
-  //   return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
-  //     .concat(['list'])
-  //     .reduce((formats, attribute) => {
-  //       if (this.domNode.hasAttribute(`data-${attribute}`)) {
-  //         formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
-  //       }
-  //       return formats
-  //     }, formats)
-  // }
 
   constructor(scroll, domNode) {
     super(scroll, domNode);
