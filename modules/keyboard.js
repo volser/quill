@@ -560,7 +560,6 @@ Keyboard.DEFAULTS = {
     'table-cell-line A': {
       key: 65,
       shortKey: true,
-      collapsed: true,
       format: ['table-cell-line'],
       handler(range, context) {
         const { event, line: cellLine } = context;
@@ -569,8 +568,9 @@ Keyboard.DEFAULTS = {
         this.quill.setSelection(
           this.quill.getIndex(parentCell),
           parentCell.length() - 1,
-          Quill.sources.SILENT
+          Quill.sources.USER
         )
+        
         return false
       }
     },
