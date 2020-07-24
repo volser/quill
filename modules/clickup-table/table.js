@@ -64,7 +64,7 @@ class Table extends Module {
       const [curLine] = this.quill.getLine(range.index)
       const lineFomrats = curLine.formats()
       if (
-        !lineFomrats[TableCellLine.blotName] &&
+        !lineFomrats['table-cell-line'] &&
         (!lineFomrats.list || !lineFomrats.list.row || !lineFomrats.list.cell)
       ) {
         this.hideTableTools()
