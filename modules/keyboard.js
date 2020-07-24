@@ -565,6 +565,7 @@ Keyboard.DEFAULTS = {
         const { event, line: cellLine } = context;
         const parentCell = cellLine.parent
         event.preventDefault()
+        event.stopPropagation()
         
         this.quill.setSelection(
           this.quill.getIndex(parentCell),
