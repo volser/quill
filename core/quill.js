@@ -400,7 +400,7 @@ class Quill {
     );
   }
 
-  setSelection(index, length, source, scrollIntoView = false) {
+  setSelection(index, length, source, scrollIntoView = true) {
     if (index == null) {
       this.selection.setRange(null, length || Quill.sources.API);
     } else {
