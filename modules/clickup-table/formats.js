@@ -465,7 +465,7 @@ class TableContainer extends Container {
         const pr = parseInt(editorStyles.getPropertyValue('padding-right'), 10)
         const editorWidth = parseInt(editorStyles.getPropertyValue('width'), 10)
         if (
-          (tableWidth < editorWidth - pl - pr) &&
+          (tableWidth < editorWidth - pl - pr && tableWidth > WIDE_TABLE_WIDTH) &&
           this.domNode.parentNode
           ) {
           this.domNode.parentNode.style.maxWidth = `${tableWidth + 1}px`
