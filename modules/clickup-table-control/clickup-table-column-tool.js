@@ -18,6 +18,7 @@ export default class TableColumnControl {
     this.activeDropdown = null
     this.helpRect = null
     this.activeCell = null
+    this.helpLine = null
 
     this.initColTool()
   }
@@ -117,6 +118,10 @@ export default class TableColumnControl {
   }
 
   destroy() {
+    if (this.helpLine) {
+      this.helpLine.remove()
+      this.helpLine = null
+    }
     this.domNode.remove()
     return null
   }
@@ -177,7 +182,6 @@ export default class TableColumnControl {
     let tableRect
     let tableViewRect
     let cellRect
-    let $helpLine = null
 
     $buttonLeft.addEventListener('click', () => {
       const index = [].indexOf.call(this.domNode.childNodes, cell)
@@ -194,10 +198,15 @@ export default class TableColumnControl {
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
 
-      $helpLine = document.createElement('div')
-      $helpLine.classList.add('cu-help-line')
-      $helpLine.classList.add('cu-help-line-col')
-      css($helpLine, {
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
+
+      this.helpLine = document.createElement('div')
+      this.helpLine.classList.add('cu-help-line')
+      this.helpLine.classList.add('cu-help-line-col')
+      css(this.helpLine, {
         position: 'absolute',
         left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
         top: `${cellRect.top - containerRect.top + parent.scrollTop}px`,
@@ -206,12 +215,14 @@ export default class TableColumnControl {
         width: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      parent.appendChild($helpLine)
+      parent.appendChild(this.helpLine)
     }, false)
 
     $buttonLeft.addEventListener('mouseout', () => {
-      $helpLine.remove()
-      $helpLine = null
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
     })
 
     $buttonRight.addEventListener('click', () => {
@@ -229,10 +240,15 @@ export default class TableColumnControl {
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
 
-      $helpLine = document.createElement('div')
-      $helpLine.classList.add('cu-help-line')
-      $helpLine.classList.add('cu-help-line-col')
-      css($helpLine, {
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
+
+      this.helpLine = document.createElement('div')
+      this.helpLine.classList.add('cu-help-line')
+      this.helpLine.classList.add('cu-help-line-col')
+      css(this.helpLine, {
         position: 'absolute',
         left: `${cellRect.left + cellRect.width - containerRect.left + parent.scrollLeft - 2}px`,
         top: `${cellRect.top - containerRect.top + parent.scrollTop}px`,
@@ -241,12 +257,14 @@ export default class TableColumnControl {
         width: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      parent.appendChild($helpLine)
+      parent.appendChild(this.helpLine)
     }, false)
 
     $buttonRight.addEventListener('mouseout', () => {
-      $helpLine.remove()
-      $helpLine = null
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
     })
   }
 
