@@ -82,6 +82,8 @@ TableColumnDropdown.defaults = {
       const tableContainer = Quill.find(this.table)
       tableContainer.insertColumn(this.colIndex, false)
       this.tool.updateToolCells()
+      const range = this.quill.getSelection(true)
+      this.quill.setSelection(range.index + 1, range.length, Quill.sources.SILENT)
       this.destroy()
     }
   },
@@ -92,6 +94,8 @@ TableColumnDropdown.defaults = {
       const tableContainer = Quill.find(this.table)
       tableContainer.insertColumn(this.colIndex, true)
       this.tool.updateToolCells()
+      const range = this.quill.getSelection(true)
+      this.quill.setSelection(range.index + 1, range.length, Quill.sources.SILENT)
       this.destroy()
     }
   },

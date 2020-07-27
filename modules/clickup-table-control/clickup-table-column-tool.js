@@ -183,6 +183,9 @@ export default class TableColumnControl {
       const index = [].indexOf.call(this.domNode.childNodes, cell)
       tableContainer.insertColumn(index, false)
       this.updateToolCells()
+
+      const range = this.quill.getSelection(true)
+      this.quill.setSelection(range.index + 1, range.length, Quill.sources.SILENT)
     }, false)
 
     $buttonLeft.addEventListener('mouseover', () => {
@@ -215,6 +218,9 @@ export default class TableColumnControl {
       const index = [].indexOf.call(this.domNode.childNodes, cell)
       tableContainer.insertColumn(index, true)
       this.updateToolCells()
+
+      const range = this.quill.getSelection(true)
+      this.quill.setSelection(range.index + 1, range.length, Quill.sources.SILENT)
     }, false)
 
     $buttonRight.addEventListener('mouseover', () => {
