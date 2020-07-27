@@ -464,7 +464,10 @@ class TableContainer extends Container {
         const pl = parseInt(editorStyles.getPropertyValue('padding-left'), 10)
         const pr = parseInt(editorStyles.getPropertyValue('padding-right'), 10)
         const editorWidth = parseInt(editorStyles.getPropertyValue('width'), 10)
-        if (
+
+        if (tableWidth <= WIDE_TABLE_WIDTH) {
+          this.domNode.parentNode.style.maxWidth = ''
+        } else if (
           (tableWidth < editorWidth - pl - pr && tableWidth > WIDE_TABLE_WIDTH) &&
           this.domNode.parentNode
           ) {
