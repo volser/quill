@@ -228,6 +228,8 @@ export default class TableRowControl {
   }
 
   reposition() {
+    if (!this.quill || !this.quill.root || !this.table) return false
+
     const parent = this.quill.root.parentNode
     const containerRect = parent.getBoundingClientRect()
     const tableViewRect = this.table.parentNode.getBoundingClientRect()
