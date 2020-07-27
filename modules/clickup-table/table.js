@@ -72,6 +72,7 @@ class Table extends Module {
           )
         )
       ) {
+        console.log('quill selection change')
         this.hideTableTools()
       }
     })
