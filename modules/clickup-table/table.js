@@ -147,13 +147,33 @@ class Table extends Module {
 
   getTable(range = this.quill.getSelection()) {
     if (range == null) return [null, null, null, -1];
-    const [cell, offset] = this.quill.getLine(range.index);
-    if (cell == null || cell.statics.blotName !== TableCell.blotName) {
+    const [cellLine, offset] = this.quill.getLine(range.index);
+
+    if (cellLine == null) {
       return [null, null, null, -1];
     }
-    const row = cell.parent;
-    const table = row.parent.parent;
-    return [table, row, cell, offset];
+    
+    if (
+      cellLine.parent &&
+      cellLine.parent.statics.blotName === TableCell.blotName
+    ) {
+      const cell = cellLine.parent
+      const row = cell.parent
+      const table = row.parent.parent
+      return [table, row, cell, offset]
+    } else if (
+      cellLine.statics.blotName === ListItem.blotName &&
+      cellLine.parent &&
+      cellLine.parent.parent &&
+      cellLine.parent.parent.statics.blotName === TableCell.blotName
+    ) {
+      const cell = cellLine.parent.parent
+      const row = cell.parent
+      const table = row.parent.parent
+      return [table, row, cell, offset]
+    } else {
+      return [null, null, null, -1]
+    }
   }
 
   insertTable(rows, columns) {

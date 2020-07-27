@@ -457,17 +457,30 @@ class TableContainer extends Container {
       } else {
         this.domNode.parentNode.classList.remove(WIDE_TABLE_CLASS);
       }
-
       // reposition table tools
-      setTimeout(() => {
-        const quill = Quill.find(this.scroll.domNode.parentNode)
+      const editorElem = this.scroll.domNode
+      if (editorElem) {
+        const editorStyles = window.getComputedStyle(editorElem, null)
+        const pl = parseInt(editorStyles.getPropertyValue('padding-left'), 10)
+        const pr = parseInt(editorStyles.getPropertyValue('padding-right'), 10)
+        const editorWidth = parseInt(editorStyles.getPropertyValue('width'), 10)
+        if (
+          (tableWidth < editorWidth - pl - pr) &&
+          this.domNode.parentNode
+          ) {
+          this.domNode.parentNode.style.maxWidth = `${tableWidth + 1}px`
+        } else {
+          this.domNode.parentNode.style.maxWidth = `100%`
+        }
+
+        const quill = Quill.find(editorElem.parentNode)
         const tableModule = quill.getModule('table')
         if (tableModule && tableModule.table) {
           tableModule.columnTool && tableModule.columnTool.reposition()
           tableModule.rowTool && tableModule.rowTool.reposition()
           tableModule.tableTool && tableModule.tableTool.reposition()
         }
-      }, 0);
+      }
     }, 0)
   }
 
@@ -531,6 +544,8 @@ class TableContainer extends Container {
           cell
         })
       )
+      const empty = this.scroll.create(Break.blotName)
+      cellLine.appendChild(empty)
       tableCell.appendChild(cellLine)
 
       if (ref) {

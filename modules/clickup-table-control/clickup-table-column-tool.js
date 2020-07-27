@@ -130,7 +130,6 @@ export default class TableColumnControl {
     const $dropdownIcon = cell.querySelector('.cu-col-tool-cell-dropdown-icon')
     const index = [].indexOf.call(this.domNode.childNodes, cell)
 
-
     $dropdownIcon.addEventListener('click', e => {
       e.stopPropagation()
       const tableModule = this.quill.getModule('table')
@@ -187,9 +186,6 @@ export default class TableColumnControl {
       const index = [].indexOf.call(this.domNode.childNodes, cell)
       tableContainer.insertColumn(index, false)
       this.updateToolCells()
-
-      const range = this.quill.getSelection(true)
-      this.quill.setSelection(range.index + 1, range.length, Quill.sources.SILENT)
     }, false)
 
     $buttonLeft.addEventListener('mouseover', () => {
@@ -229,9 +225,6 @@ export default class TableColumnControl {
       const index = [].indexOf.call(this.domNode.childNodes, cell)
       tableContainer.insertColumn(index, true)
       this.updateToolCells()
-
-      const range = this.quill.getSelection(true)
-      this.quill.setSelection(range.index + 1, range.length, Quill.sources.SILENT)
     }, false)
 
     $buttonRight.addEventListener('mouseover', () => {
@@ -367,6 +360,8 @@ export default class TableColumnControl {
 
     // table col tool
     css(this.domNode, {
+      width: `${tableViewRect.width}px`,
+      height: `${COL_TOOL_HEIGHT}px`,
       left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
       top: `${tableViewRect.top - containerRect.top + parent.scrollTop - COL_TOOL_HEIGHT}px`,
     })
