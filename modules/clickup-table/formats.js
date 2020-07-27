@@ -459,13 +459,15 @@ class TableContainer extends Container {
       }
 
       // reposition table tools
-      const quill = Quill.find(this.scroll.domNode.parentNode)
-      const tableModule = quill.getModule('table')
-      if (tableModule && tableModule.table) {
-        tableModule.columnTool && tableModule.columnTool.reposition()
-        tableModule.rowTool && tableModule.rowTool.reposition()
-        tableModule.tableTool && tableModule.tableTool.reposition()
-      }
+      setTimeout(() => {
+        const quill = Quill.find(this.scroll.domNode.parentNode)
+        const tableModule = quill.getModule('table')
+        if (tableModule && tableModule.table) {
+          tableModule.columnTool && tableModule.columnTool.reposition()
+          tableModule.rowTool && tableModule.rowTool.reposition()
+          tableModule.tableTool && tableModule.tableTool.reposition()
+        }
+      }, 0);
     }, 0)
   }
 
