@@ -928,7 +928,8 @@ function tableSide(table, row, cell, offset) {
 function isTheLineInATableCell (line) {
   const key = line.statics.blotName
   const formats = line.formats()
-  return formats[key] &&
+  return !!formats &&
+    formats[key] &&
     !!formats[key].cell
 }
 
