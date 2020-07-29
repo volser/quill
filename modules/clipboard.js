@@ -22,6 +22,7 @@ import { FontStyle } from '../formats/font';
 import { SizeStyle } from '../formats/size';
 // clickup: utils
 import { _omit } from './clickup-table/utils';
+import Link from '../formats/link';
 
 const debug = logger('quill:clipboard');
 
@@ -156,6 +157,21 @@ class Clipboard extends Module {
     e.preventDefault();
     if (this.options.onCapturePaste.call(this, e)) return;
     const range = this.quill.getSelection(true);
+
+    // Paste links over text
+    if (range.length > 0) {
+      const copiedText = e.clipboardData.getData('text/plain');
+      const selectedLines = this.quill.getLines(range.index, range.length)
+      if (
+        isOneSingleLine(copiedText) &&
+        selectedLines.length === 1 &&
+        Link.sanitize(copiedText)
+      ) {
+        this.quill.format('link', copiedText)
+        this.quill.setSelection(range.index + range.length, 0, Quill.sources.USER)
+        return;
+      }
+    }
 
     // Process pasting in table-cell-line before
     const [thisLeaf] = this.quill.getLine(range.index);
@@ -655,6 +671,10 @@ function matchText(node, delta) {
     }
   }
   return delta.insert(text);
+}
+
+function isOneSingleLine(text) {
+  return !(new RegExp('\\n', 'i').test(text))
 }
 
 export {
