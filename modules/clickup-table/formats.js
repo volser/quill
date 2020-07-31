@@ -772,6 +772,15 @@ class ListItem extends Block {
         } else {
           this.expandItem()
         }
+        // update height of table row tool if this list was in a table
+        const quill = Quill.find(scroll.domNode.parentNode)
+        const editorElem = scroll.domNode
+        if (quill && editorElem) {
+          const tableModule = quill.getModule('table')
+          if (tableModule && tableModule.table && tableModule.rowTool) {
+            window.setTimeout(tableModule.rowTool.updateToolCells(), 0)
+          }
+        }
       }
     };
     ui.addEventListener('mousedown', listEventHandler);
