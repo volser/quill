@@ -751,6 +751,11 @@ class ListItem extends Block {
   constructor(scroll, domNode) {
     super(scroll, domNode);
     const ui = domNode.ownerDocument.createElement('span');
+    const format = this.statics.formats(domNode, scroll);
+    if (format.list === 'toggled') {
+      this.domNode.setAttribute('data-list-toggle', true)
+    }
+
     const listEventHandler = e => {
       if (!scroll.isEnabled()) return;
       const format = this.statics.formats(domNode, scroll);
@@ -760,6 +765,15 @@ class ListItem extends Block {
       } else if (format.list === 'unchecked') {
         this.format('list', 'checked');
         e.preventDefault();
+      } else if (format.list === 'toggled') {
+        // toggled click handler
+        const isExpanded = this.domNode.getAttribute('data-list-toggle')
+        if (isExpanded) {
+          this.domNode.removeAttribute('data-list-toggle')
+        } else {
+          this.domNode.setAttribute('data-list-toggle', true)
+        }
+        this.toggleChildren()
       }
     };
     ui.addEventListener('mousedown', listEventHandler);
@@ -802,6 +816,29 @@ class ListItem extends Block {
     }
   }
 
+  toggleChildren() {
+    const curFormat = this.formats();
+    const curIndent = curFormat.indent || 0
+    if (curFormat.list.list === 'toggled') {
+      let next = this.next
+      let nextFormat = next && next.formats()
+      let nextIndent = nextFormat && nextFormat.indent || 0
+      while (
+        next &&
+        next.statics.blotName === ListItem.blotName
+      ) {
+        if (nextIndent - curIndent > 0) {
+          next.optimize()
+          next = next.next
+          nextFormat = next && next.formats()
+          nextIndent = nextFormat && nextFormat.indent || 0
+        } else {
+          next = null
+        }
+      }
+    }
+  }
+
   optimize(context) {
     const { row, cell, rowspan, colspan } = ListItem.formats(this.domNode)
 
@@ -814,6 +851,41 @@ class ListItem extends Block {
         rowspan
       })
     }
+
+    // set own visibility
+    let prev = this.prev
+    let prevFormat = prev && prev.formats()
+    let prevIndent = prevFormat && prevFormat.indent || 0
+    let parent = this
+    let parentFormat = parent && parent.formats()
+    let parentIndent = parentFormat && parentFormat.indent || 0
+    const parents = []
+    while (
+      prev &&
+      prev.statics.blotName === ListItem.blotName
+    ) {
+      if (parentIndent - prevIndent > 0) {
+        parent = prev
+        parentFormat = prevFormat
+        parentIndent = prevIndent
+        parents.push(prev)
+      }
+
+      prev = prev.prev
+      prevFormat = prev && prev.formats()
+      prevIndent = prevFormat && prevFormat.indent || 0
+    }
+
+    const isExpanded = parents.every(parent => {
+      return parent.domNode.getAttribute('data-list-toggle') ||
+        (
+          parent.formats() && parent.formats().list &&
+          parent.formats().list.list !== 'toggled'
+        )
+    })
+    
+    this.domNode.style.display = `${isExpanded ? 'block' : 'none'}`
+
     super.optimize(context)
   }
 }
