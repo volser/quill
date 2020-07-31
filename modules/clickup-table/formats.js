@@ -766,14 +766,12 @@ class ListItem extends Block {
         this.format('list', 'checked');
         e.preventDefault();
       } else if (format.list === 'toggled') {
-        // toggled click handler
-        const isExpanded = this.domNode.getAttribute('data-list-toggle')
+        const isExpanded = this.isThisItemExpanded()
         if (isExpanded) {
-          this.domNode.removeAttribute('data-list-toggle')
+          this.collapseItem()
         } else {
-          this.domNode.setAttribute('data-list-toggle', true)
+          this.expandItem()
         }
-        this.toggleChildren()
       }
     };
     ui.addEventListener('mousedown', listEventHandler);
@@ -814,6 +812,54 @@ class ListItem extends Block {
     } else {
       super.format(name, value)
     }
+  }
+
+  isToggleListItem() {
+    const formats = this.formats()
+    return formats && formats.list && formats.list.list === 'toggled'
+  }
+
+  isThisItemExpanded() {
+    return this.isToggleListItem() &&
+      !!this.domNode.getAttribute('data-list-toggle')
+  }
+
+  expandItem() {
+    if (this.isToggleListItem()) {
+      this.domNode.setAttribute('data-list-toggle', true)
+      this.toggleChildren()
+    }
+  }
+
+  collapseItem() {
+    if (this.isToggleListItem()) {
+      this.domNode.removeAttribute('data-list-toggle')
+      this.toggleChildren()
+    }
+  }
+
+  getToggleListItemChildren() {
+    if (!this.isToggleListItem()) return []
+    const children = []
+    const curFormat = this.formats();
+    const curIndent = curFormat.indent || 0
+    let next = this.next
+    let nextFormat = next && next.formats()
+    let nextIndent = nextFormat && nextFormat.indent || 0
+    while (
+      next &&
+      next.statics.blotName === ListItem.blotName
+    ) {
+      if (nextIndent - curIndent > 0) {
+        children.push(next)
+        next = next.next
+        nextFormat = next && next.formats()
+        nextIndent = nextFormat && nextFormat.indent || 0
+      } else {
+        next = null
+      }
+    }
+    return children
   }
 
   toggleChildren() {
@@ -888,6 +934,8 @@ class ListItem extends Block {
 
     super.optimize(context)
   }
+
+  
 }
 ListItem.blotName = 'list';
 ListItem.tagName = 'LI';
