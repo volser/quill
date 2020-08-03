@@ -6,6 +6,9 @@ import {
   DirectionClass,
   DirectionStyle,
 } from './formats/direction';
+import {
+  voidDetectAttribute
+} from './formats/void-detect.js'
 import Indent from './formats/indent';
 
 import Blockquote from './formats/blockquote';
@@ -48,6 +51,7 @@ import SnowTheme from './themes/snow';
 Quill.register(
   {
     'attributors/attribute/direction': DirectionAttribute,
+    'attributors/attribute/void-detect': voidDetectAttribute,
 
     'attributors/class/align': AlignClass,
     'attributors/class/background': BackgroundClass,
@@ -68,6 +72,7 @@ Quill.register(
 
 Quill.register(
   {
+    'formats/void-detect': voidDetectAttribute,
     'formats/align': AlignClass,
     'formats/direction': DirectionClass,
     'formats/indent': Indent,
