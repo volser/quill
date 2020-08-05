@@ -534,7 +534,7 @@ function matchIndent(node, delta, scroll) {
 
 // clickup: modify the matcher of list
 function matchList(node, delta) {
-  const firstListItem = node.childNodes[0]
+  const firstListItem = node.children[0]
   let list = firstListItem.getAttribute('data-list')
 
   if (!list) {
