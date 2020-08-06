@@ -38,6 +38,7 @@ import Syntax from './modules/syntax';
 // clickup: replace the import path of table module to clickup-table
 import Table from './modules/clickup-table/table';
 import Toolbar from './modules/toolbar';
+import DragDropBlocks from './modules/drag-drop-blocks/drag-drop-blocks';
 
 import Icons from './ui/icons';
 import Picker from './ui/picker';
@@ -103,6 +104,7 @@ Quill.register(
     'modules/syntax': Syntax,
     'modules/table': Table,
     'modules/toolbar': Toolbar,
+    'modules/dragDropBlocks': DragDropBlocks,
 
     'themes/bubble': BubbleTheme,
     'themes/snow': SnowTheme,
