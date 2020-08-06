@@ -21,9 +21,6 @@ export class DragDropBlocks extends Module {
     this.activeAnchor = null
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
 
-    const parent = this.quill.root.parentNode
-    const containerRect = parent.getBoundingClientRect()
-
     this.quill.root.addEventListener('mouseover', evt => {
       if (this.dragging) return 
       const target = evt.target
@@ -57,6 +54,8 @@ export class DragDropBlocks extends Module {
       if (overRoot && this.draggingRoot === overRoot) {
         this.resetDraggingHelpLine()
       } else if (overRoot && this.draggingRoot !== overRoot) {
+        const parent = this.quill.root.parentNode
+        const containerRect = parent.getBoundingClientRect()
         const overRootRect = overRoot.domNode.getBoundingClientRect()
         const offsetY = evt.clientY - overRootRect.top
         if (offsetY < overRootRect.height / 2) {
