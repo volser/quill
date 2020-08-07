@@ -2,7 +2,7 @@ import Delta from 'quill-delta';
 import Quill from '../../core/quill';
 import Module from '../../core/module';
 
-import { getDraggableRootBlot, css } from './utils'
+import { getDraggableRootBlot, getDropableRootBlot, css } from './utils'
 
 const ICON_DRAG_ANCHOR = '<svg t="1596683681627" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5150" width="20" height="20"><path d="M362.666667 192m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5151" fill="#b1b1b1"></path><path d="M661.333333 192m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5152" fill="#b1b1b1"></path><path d="M362.666667 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5153" fill="#b1b1b1"></path><path d="M661.333333 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5154" fill="#b1b1b1"></path><path d="M362.666667 832m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5155" fill="#b1b1b1"></path><path d="M661.333333 832m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5156" fill="#b1b1b1"></path></svg>'
 const ICON_DRAG_ANCHOR_WIDTH = 20
@@ -17,6 +17,7 @@ export class DragDropBlocks extends Module {
     this.options = options
     this.dragging = false
     this.draggingRoot = null
+    this.dragOverRoot = null
     this.dropRefRoot = null
     this.activeAnchor = null
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
@@ -48,15 +49,15 @@ export class DragDropBlocks extends Module {
       evt.preventDefault()
       const target = evt.target
       const overBlot = Quill.find(target, true)
-      const overRoot = this.getDraggableRootBlot(overBlot, target)
-      if (!overRoot) return
+      this.dragOverRoot = this.getDropableRootBlot(overBlot, target)
+      if (!this.dragOverRoot) return
 
-      if (overRoot && this.draggingRoot === overRoot) {
+      if (this.dragOverRoot && this.draggingRoot === this.dragOverRoot) {
         this.resetDraggingHelpLine()
-      } else if (overRoot && this.draggingRoot !== overRoot) {
+      } else if (this.dragOverRoot && this.draggingRoot !== this.dragOverRoot) {
         const parent = this.quill.root.parentNode
         const containerRect = parent.getBoundingClientRect()
-        const overRootRect = overRoot.domNode.getBoundingClientRect()
+        const overRootRect = this.dragOverRoot.domNode.getBoundingClientRect()
         const offsetY = evt.clientY - overRootRect.top
         if (offsetY < overRootRect.height / 2) {
           css(this.draggingHelpLine, {
@@ -67,7 +68,7 @@ export class DragDropBlocks extends Module {
             zIndex: `${this.options.zIndex || DEFAULT_ZINDEX}`,
             display: 'block'
           })
-          this.dropRefRoot = overRoot
+          this.dropRefRoot = this.dragOverRoot
         } else {
           css(this.draggingHelpLine, {
             position: 'absolute',
@@ -77,7 +78,7 @@ export class DragDropBlocks extends Module {
             zIndex: `${this.options.zIndex || DEFAULT_ZINDEX}`,
             display: 'block'
           })
-          this.dropRefRoot = overRoot.next
+          this.dropRefRoot = this.dragOverRoot.next
         }
       }
     }, false)
@@ -87,10 +88,12 @@ export class DragDropBlocks extends Module {
         if (this.dropRefRoot) {
           this.dropRefRoot.parent.insertBefore(this.draggingRoot, this.dropRefRoot)
         } else {
-          this.quill.scroll.insertBefore(this.draggingRoot, this.dropRefRoot)
+          this.dragOverRoot.parent.insertBefore(this.draggingRoot, null)
         }
       }
+
       this.hideDraggableAnchor()
+
       // reposition table tools
       setTimeout(() => {
         const tableModule = this.quill.getModule('table')
@@ -110,6 +113,13 @@ export class DragDropBlocks extends Module {
     return getDraggableRootBlot(blot, node)
   }
 
+  getDropableRootBlot (blot, node) {
+    if (this.options.getDropableRootBlot) {
+      return this.options.getDropableRootBlot(blot, node)
+    }
+    return getDropableRootBlot(blot, node)
+  }
+
   resetDraggingHelpLine () {
     if (this.draggingHelpLine) {
       css(this.draggingHelpLine, {
@@ -125,6 +135,9 @@ export class DragDropBlocks extends Module {
     // !!this.draggingRoot && this.draggingRoot.domNode.removeAttribute('draggable')
     this.activeAnchor && this.activeAnchor.remove()
     this.draggingRoot = null
+    this.dragOverRoot = null
+    this.dropRefRoot = null
+    this.activeAnchor = null
   }
 
   showDraggableAnchor () {
