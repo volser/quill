@@ -18,7 +18,6 @@ class Link extends Inline {
   }
 
   format(name, value) {
-    console.log(name)
     if (name !== this.statics.blotName) {
       super.format(name, value);
     } else {
