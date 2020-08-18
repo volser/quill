@@ -61,7 +61,9 @@ window.onload = () => {
     theme: 'snow',
     modules: {
       toolbar: toolbarOptions,
-      dragDropBlocks: true,
+      dragDropBlocks: {
+        anchorOffsetLeft: () => 1
+      },
       table: {
         tableTools: {
           zIndex: 100

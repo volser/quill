@@ -39,7 +39,7 @@ export class DragDropBlocks extends Module {
       if (curRoot && this.draggingRoot !== curRoot) {
         this.hideDraggableAnchor()
         this.draggingRoot = curRoot
-        this.showDraggableAnchor()
+        this.showDraggableAnchor(curBlot, target)
       } else if (!curRoot) {
         this.hideDraggableAnchor()
       }
@@ -64,7 +64,7 @@ export class DragDropBlocks extends Module {
             position: 'absolute',
             width: `${overRootRect.width}px`,
             left: `${overRootRect.left - containerRect.left + parent.scrollLeft}px`,
-            top: `${overRootRect.top - containerRect.top + parent.scrollTop - HELP_LINE_HEIGHT}px`,
+            top: `${overRootRect.top - containerRect.top + parent.scrollTop - HELP_LINE_HEIGHT / 2}px`,
             zIndex: `${this.options.zIndex || DEFAULT_ZINDEX}`,
             display: 'block'
           })
@@ -74,7 +74,7 @@ export class DragDropBlocks extends Module {
             position: 'absolute',
             width: `${overRootRect.width}px`,
             left: `${overRootRect.left - containerRect.left + parent.scrollLeft}px`,
-            top: `${overRootRect.top - containerRect.top + parent.scrollTop + overRootRect.height}px`,
+            top: `${overRootRect.top - containerRect.top + parent.scrollTop + overRootRect.height - HELP_LINE_HEIGHT / 2}px`,
             zIndex: `${this.options.zIndex || DEFAULT_ZINDEX}`,
             display: 'block'
           })
@@ -132,7 +132,6 @@ export class DragDropBlocks extends Module {
   }
 
   hideDraggableAnchor () {
-    // !!this.draggingRoot && this.draggingRoot.domNode.removeAttribute('draggable')
     this.activeAnchor && this.activeAnchor.remove()
     this.draggingRoot = null
     this.dragOverRoot = null
@@ -140,10 +139,9 @@ export class DragDropBlocks extends Module {
     this.activeAnchor = null
   }
 
-  showDraggableAnchor () {
+  showDraggableAnchor (blot, node) {
     if (!this.draggingRoot) return
     this.activeAnchor = this.quill.addContainer('cu-draggable-anchor')
-    // this.draggingRoot.domNode.setAttribute('draggable', true)
     const dragIcon = document.createElement('div')
     dragIcon.classList.add('cu-draggable-anchor-icon')
     dragIcon.innerHTML = ICON_DRAG_ANCHOR
@@ -154,12 +152,47 @@ export class DragDropBlocks extends Module {
     const containerRect = parent.getBoundingClientRect()
     const activeRootRect = this.draggingRoot.domNode.getBoundingClientRect()
 
+    let anchorOffsetLeft = 0
+    if (this.options.anchorOffsetLeft) {
+      if (
+        typeof this.options.anchorOffsetLeft === 'function'
+      ) {
+        anchorOffsetLeft = this.options.anchorOffsetLeft(blot, node)
+      } else if (
+        typeof this.options.anchorOffsetLeft === 'number'
+      ) {
+        anchorOffsetLeft = this.options.anchorOffsetLeft
+      }
+    }
+
+    let anchorOffsetTop = 0
+    if (this.options.anchorOffsetTop) {
+      if (
+        typeof this.options.anchorOffsetLeft === 'function'
+      ) {
+        anchorOffsetTop = this.options.anchorOffsetTop(blot, node)
+      } else if (
+        typeof this.options.anchorOffsetTop === 'number'
+      ) {
+        anchorOffsetTop = this.options.anchorOffsetTop
+      }
+    }
+
+    if (typeof anchorOffsetLeft !== 'number') {
+      anchorOffsetLeft = 0
+      console.error(`DragDropBlocks module: anchorOffsetLeft can only be a number or function!`)
+    }
+    if (typeof anchorOffsetLeft !== 'number') {
+      anchorOffsetTop = 0
+      console.error(`DragDropBlocks module: anchorOffsetTop can only be a number or function!`)
+    }
+
     css(this.activeAnchor, {
       position: 'absolute',
       width: `${ICON_DRAG_ANCHOR_WIDTH}px`,
       height: `${activeRootRect.height}px`,
-      left: `${activeRootRect.left - containerRect.left + parent.scrollLeft - ICON_DRAG_ANCHOR_WIDTH - 2}px`,
-      top: `${activeRootRect.top - containerRect.top + parent.scrollTop}px`,
+      left: `${activeRootRect.left - containerRect.left + parent.scrollLeft - ICON_DRAG_ANCHOR_WIDTH + anchorOffsetLeft}px`,
+      top: `${activeRootRect.top - containerRect.top + parent.scrollTop + anchorOffsetTop}px`,
       zIndex: `${this.options.zIndex || DEFAULT_ZINDEX}`
     })
 
