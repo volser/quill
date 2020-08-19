@@ -88,7 +88,7 @@ export class DragDropBlocks extends Module {
         if (this.dropRefRoot) {
           this.dropRefRoot.parent.insertBefore(this.draggingRoot, this.dropRefRoot)
         } else {
-          this.dragOverRoot.parent.insertBefore(this.draggingRoot, null)
+          this.dragOverRoot && this.dragOverRoot.parent.insertBefore(this.draggingRoot, null)
         }
       }
 
@@ -205,11 +205,17 @@ export class DragDropBlocks extends Module {
       this.dragging = true
       e.dataTransfer.setData('text/html', this.draggingRoot.domNode.outerHTML)
       e.dataTransfer.effectAllowed = 'move'
+      if (this.quill.root && this.quill.root.classList) {
+        this.quill.root.classList.add('ql-dragging-blocks')
+      }
     }
 
     function dragEndHanlder(e) {
       this.dragging = false
       this.resetDraggingHelpLine()
+      if (this.quill.root && this.quill.root.classList) {
+        this.quill.root.classList.remove('ql-dragging-blocks')
+      }
     }
   }
 }
