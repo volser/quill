@@ -49,9 +49,10 @@ export class DragDropBlocks extends Module {
       evt.preventDefault()
       const target = evt.target
       const overBlot = Quill.find(target, true)
-      this.dragOverRoot = this.getDropableRootBlot(overBlot, target)
-      if (!this.dragOverRoot) return
+      const dragOverRoot = this.getDropableRootBlot(overBlot, target)
+      if (!dragOverRoot) return
 
+      this.dragOverRoot = dragOverRoot
       if (this.dragOverRoot && this.draggingRoot === this.dragOverRoot) {
         this.resetDraggingHelpLine()
       } else if (this.dragOverRoot && this.draggingRoot !== this.dragOverRoot) {
@@ -81,28 +82,6 @@ export class DragDropBlocks extends Module {
           this.dropRefRoot = this.dragOverRoot.next
         }
       }
-    }, false)
-
-    this.quill.root.addEventListener('drop', evt => {
-      if (this.draggingRoot !== this.dropRefRoot) {
-        if (this.dropRefRoot) {
-          this.dropRefRoot.parent.insertBefore(this.draggingRoot, this.dropRefRoot)
-        } else {
-          this.dragOverRoot && this.dragOverRoot.parent.insertBefore(this.draggingRoot, null)
-        }
-      }
-
-      this.hideDraggableAnchor()
-
-      // reposition table tools
-      setTimeout(() => {
-        const tableModule = this.quill.getModule('table')
-        if (!!tableModule.table) {
-          tableModule.columnTool && tableModule.columnTool.reposition()
-          tableModule.rowTool && tableModule.rowTool.reposition()
-          tableModule.tableTool && tableModule.tableTool.reposition()
-        }
-      }, 1)
     }, false)
   }
 
@@ -216,6 +195,27 @@ export class DragDropBlocks extends Module {
       if (this.quill.root && this.quill.root.classList) {
         this.quill.root.classList.remove('ql-dragging-blocks')
       }
+
+      // change order
+      if (this.draggingRoot !== this.dropRefRoot) {
+        if (this.dropRefRoot) {
+          this.dropRefRoot.parent.insertBefore(this.draggingRoot, this.dropRefRoot)
+        } else if (this.dragOverRoot) {
+          this.dragOverRoot.parent.insertBefore(this.draggingRoot, null)
+        }
+      }
+
+      this.hideDraggableAnchor()
+
+      // reposition table tools
+      setTimeout(() => {
+        const tableModule = this.quill.getModule('table')
+        if (!!tableModule.table) {
+          tableModule.columnTool && tableModule.columnTool.reposition()
+          tableModule.rowTool && tableModule.rowTool.reposition()
+          tableModule.tableTool && tableModule.tableTool.reposition()
+        }
+      }, 1)
     }
   }
 }
