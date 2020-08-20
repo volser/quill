@@ -1,6 +1,7 @@
 import Quill from '../../quill'
 import { css, getEventComposedPath } from './utils'
 import Dropdown from './clickup-table-column-dropdown'
+import TableTooltip from './clickup-table-tooltip'
 
 const COL_TOOL_HEIGHT = 32
 const COL_TOOL_ADD_BUTTON_HEIGHT = 20
@@ -19,6 +20,10 @@ export default class TableColumnControl {
     this.helpRect = null
     this.activeCell = null
     this.helpLine = null
+    this.tooltip = new TableTooltip(quill, {
+      zIndex: this.options.zIndex,
+      content: 'Add column'
+    })
 
     this.initColTool()
   }
@@ -122,6 +127,10 @@ export default class TableColumnControl {
       this.helpLine.remove()
       this.helpLine = null
     }
+    if (this.tooltip) {
+      this.tooltip.hide()
+      this.tooltip = null
+    }
     this.domNode.remove()
     return null
   }
@@ -188,7 +197,9 @@ export default class TableColumnControl {
       this.updateToolCells()
     }, false)
 
-    $buttonLeft.addEventListener('mouseover', () => {
+    $buttonLeft.addEventListener('mouseover', e => {
+      this.tooltip.show(e.target)
+
       containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
@@ -219,6 +230,10 @@ export default class TableColumnControl {
         this.helpLine.remove()
         this.helpLine = null
       }
+
+      if (this.tooltip) {
+        this.tooltip.hide()
+      }
     })
 
     $buttonRight.addEventListener('click', () => {
@@ -227,7 +242,9 @@ export default class TableColumnControl {
       this.updateToolCells()
     }, false)
 
-    $buttonRight.addEventListener('mouseover', () => {
+    $buttonRight.addEventListener('mouseover', e => {
+      this.tooltip.show(e.target)
+
       containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
@@ -257,6 +274,10 @@ export default class TableColumnControl {
       if (this.helpLine) {
         this.helpLine.remove()
         this.helpLine = null
+      }
+
+      if (this.tooltip) {
+        this.tooltip.hide()
       }
     })
   }

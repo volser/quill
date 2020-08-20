@@ -2,6 +2,7 @@ import Quill from '../../quill'
 import { css } from './utils'
 import { TableBody } from '../clickup-table/formats'
 import IconManager from './clickup-icon-manager'
+import TableTooltip from './clickup-table-tooltip'
 
 const ROW_TOOL_ADD_BUTTON_WIDTH = 12
 const COL_TOOL_CELL_HEIGHT = 12
@@ -17,6 +18,11 @@ export default class TableRowControl {
     this.options = options.tableTools || {}
     this.domNode = null
     this.iconManager = new IconManager()
+    this.helpLine = null
+    this.tooltip = new TableTooltip(quill, {
+      zIndex: this.options.zIndex,
+      content: 'Add new row'
+    })
 
     this.initRowTool()
   }
@@ -122,6 +128,15 @@ export default class TableRowControl {
   }
 
   destroy() {
+    if (this.helpLine) {
+      this.helpLine.remove()
+      this.helpLine = null
+    }
+
+    if (this.tooltip) {
+      this.tooltip.hide()
+      this.tooltip = null
+    }
     this.domNode.remove()
     return null
   }
@@ -142,6 +157,16 @@ export default class TableRowControl {
         this.updateToolCells()
       }
     }, false)
+
+    $buttonDel.addEventListener('mouseover', e => {
+      this.tooltip.show(e.currentTarget, 'Delete row')
+    }, false)
+
+    $buttonDel.addEventListener('mouseout', () => {
+      if (this.tooltip) {
+        this.tooltip.hide()
+      }
+    })
   }
 
   addInertRowButtonHanler(cell) {
@@ -154,7 +179,6 @@ export default class TableRowControl {
     let tableRect
     let tableViewRect
     let cellRect
-    let $helpLine = null
 
     $buttonTop.addEventListener('click', () => {
       const index = [].indexOf.call(this.domNode.childNodes, cell)
@@ -162,16 +186,22 @@ export default class TableRowControl {
       this.updateToolCells()
     }, false)
 
-    $buttonTop.addEventListener('mouseover', () => {
+    $buttonTop.addEventListener('mouseover', e => {
+      this.tooltip.show(e.target)
+
       containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
 
-      $helpLine = document.createElement('div')
-      $helpLine.classList.add('cu-help-line')
-      $helpLine.classList.add('cu-help-line-row')
-      css($helpLine, {
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
+
+      this.helpLine = this.quill.addContainer('cu-help-line')
+      this.helpLine.classList.add('cu-help-line-row')
+      css(this.helpLine, {
         position: 'absolute',
         left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
         top: `${cellRect.top - containerRect.top + parent.scrollTop - 1}px`,
@@ -183,12 +213,17 @@ export default class TableRowControl {
         height: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      parent.appendChild($helpLine)
     }, false)
 
     $buttonTop.addEventListener('mouseout', () => {
-      $helpLine.remove()
-      $helpLine = null
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
+
+      if (this.tooltip) {
+        this.tooltip.hide()
+      }
     })
 
     $buttonBottom.addEventListener('click', () => {
@@ -197,16 +232,22 @@ export default class TableRowControl {
       this.updateToolCells()
     }, false)
 
-    $buttonBottom.addEventListener('mouseover', () => {
+    $buttonBottom.addEventListener('mouseover', e => {
+      this.tooltip.show(e.target)
+
       containerRect = parent.getBoundingClientRect()
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
       cellRect = cell.getBoundingClientRect()
 
-      $helpLine = document.createElement('div')
-      $helpLine.classList.add('cu-help-line')
-      $helpLine.classList.add('cu-help-line-row')
-      css($helpLine, {
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
+
+      this.helpLine = this.quill.addContainer('cu-help-line')
+      this.helpLine.classList.add('cu-help-line-row')
+      css(this.helpLine, {
         position: 'absolute',
         left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
         top: `${cellRect.top - containerRect.top + parent.scrollTop - 1 + cellRect.height}px`,
@@ -218,12 +259,17 @@ export default class TableRowControl {
         height: '2px',
         backgroundColor: PRIMARY_COLOR
       })
-      parent.appendChild($helpLine)
     }, false)
 
     $buttonBottom.addEventListener('mouseout', () => {
-      $helpLine.remove()
-      $helpLine = null
+      if (this.helpLine) {
+        this.helpLine.remove()
+        this.helpLine = null
+      }
+
+      if (this.tooltip) {
+        this.tooltip.hide()
+      }
     })
   }
 

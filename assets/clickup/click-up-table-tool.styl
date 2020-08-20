@@ -9,3 +9,24 @@
 
   &.active
     background-color: #516cf0
+
+.ql-table-tooltip
+  position: absolute
+  background-color: #444
+  border-radius: 4px
+  color: #fff
+  font-size: 12px
+  padding: 0 4px
+  transform: translateX(-50%)
+
+  &::before
+    position: absolute
+    left: 50%
+    top: 100%
+    transform: translateX(-4px)
+    content: ''
+    border-style: solid
+    border-width: 4px
+    border-color: #444 transparent transparent transparent
+    width: 0
+    height: 0
