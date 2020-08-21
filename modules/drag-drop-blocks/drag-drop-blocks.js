@@ -133,6 +133,19 @@ export class DragDropBlocks extends Module {
     const containerRect = parent.getBoundingClientRect()
     const activeRootRect = this.draggingRoot.domNode.getBoundingClientRect()
 
+    let isAnchorAlignCenter = false
+    if (this.options.anchorAlignCenter) {
+      if (
+        typeof this.options.anchorAlignCenter === 'function'
+      ) {
+        isAnchorAlignCenter = this.options.anchorAlignCenter(blot, node)
+      } else if (
+        typeof this.options.anchorAlignCenter === 'boolean'
+      ) {
+        isAnchorAlignCenter = this.options.anchorOffsetLeft
+      }
+    }
+
     let anchorOffsetLeft = 0
     if (this.options.anchorOffsetLeft) {
       if (
@@ -166,6 +179,15 @@ export class DragDropBlocks extends Module {
     if (typeof anchorOffsetLeft !== 'number') {
       anchorOffsetTop = 0
       console.error(`DragDropBlocks module: anchorOffsetTop can only be a number or function!`)
+    }
+    if (typeof isAnchorAlignCenter !== 'boolean') {
+      isAnchorAlignCenter = false
+      console.error(`DragDropBlocks module: anchorAlignCenter can only be a boolean or function!`)
+    }
+
+    // set the vertical alignment of anchor
+    if (isAnchorAlignCenter) {
+      this.activeAnchor.classList.add('cu-draggable-anchor-center')
     }
 
     css(this.activeAnchor, {

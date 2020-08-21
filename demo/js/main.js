@@ -62,7 +62,8 @@ window.onload = () => {
     modules: {
       toolbar: toolbarOptions,
       dragDropBlocks: {
-        anchorOffsetLeft: () => 1
+        anchorOffsetLeft: () => 1,
+        anchorAlignCenter: () => true
       },
       table: {
         tableTools: {
