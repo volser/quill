@@ -115,6 +115,9 @@ class Table extends Module {
   }
 
   showTableTools (table, quill, options) {
+    const dragDropBlocks = this.quill.getModule('dragDropBlocks')
+    dragDropBlocks.hideDraggableAnchor()
+
     this.table = table
     this.columnTool = new TableColumnTool(table, quill, options)
     this.rowTool = new TableRowTool(table, quill, options)
