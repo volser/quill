@@ -47,6 +47,8 @@ export class DragDropBlocks extends Module {
 
     this.quill.root.addEventListener('dragover', evt => {
       evt.preventDefault()
+      if (!this.dragging) return
+
       const target = evt.target
       const overBlot = Quill.find(target, true)
       const dragOverRoot = this.getDropableRootBlot(overBlot, target)
@@ -190,6 +192,7 @@ export class DragDropBlocks extends Module {
     }
 
     function dragEndHanlder(e) {
+      if (!this.dragging) return
       this.dragging = false
       this.resetDraggingHelpLine()
       if (this.quill.root && this.quill.root.classList) {
