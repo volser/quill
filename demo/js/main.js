@@ -36,6 +36,8 @@ const oldListDelta = new Delta({
   ]
 })
 
+const testDelta3 = new Delta({"ops":[{"insert":"sfsfsdfsdfs"},{"insert":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKoAAABACAYAAACKqexmAAAELUlEQVR4Ae2bPXIiMRCFOZxzyMkhx7kPQO4DQM4ByDkAzn0A5z7AbD12HyVkSdNMIS1tPVW5en66h6fXX83v7mzQkAMOHJg50CiJcmAQqILAhQMC1UWbJFKgigEXDghUF22SSIEqBlw4IFBdtEkiBaoYcOGAQHXRJokUqGLAhQMC1UWbJFKgigEXDghUF22SSIEqBlw4IFBdtEkiBaoYcOGAQHXRJokUqGLAhQMC1UWbJFKgigEXDghUF22SSIEqBlw4IFBdtEkiuwP1dDoN6/V6WC6XA5atY2qd9fiPypuq83g8Xjy515dH6R47TnegohEvLy+XPwBrHVPrrMd/VN5UnVPrHqV77DjdgUpIGccM4n7mM3L7s0XqY7TqYz6jta5VnkA1Os0GMhrLmqdRH6NVAPMZrXWt8gSq0Wk2kNFY1jyN+hitApjPaK1rlSdQjU6zgYzGsuZp1MdoFcB8RmtdqzyBanSaDWQ0ljVPoz5GqwDmM1rrWuXN8Fqip8FGMFrnznxGa13rPOpjtP4+8xlLdefzefj4+Bi+v79LaQ/dN4OwnmBlIxitbjKfMVWHxr2+vk56/ZU63pRt1MdoPQbzGeM6wInXedzPiPl+fX3F6Q9fv4CKH+0FVhrMaHWU+YxxHSBNNTLOq71OfYzW32M+Y1gHNrg9FReLRfWz6xVUCLjnS004EU/LKaOnbAvn/Pn5OaBZqeOEeS2WUxqmbKNWzM1SjzNrzXEDKr5O/PZhMd2SQ59wJs1BiuO0HhbtlhzqxvxWq9UV1re3t8vVd7vdXrfxeKypEQXqv8+pNNsa2Qw0cj6fX5sWLuNYrYdV/1heqBtzfH9//3HFjeeK+9ha4wZUXfr//huAsSbGAOLyiKahmZvN5gptnFerieFxLdotOeExU8upKwm21RpXUPUwVbY4bm4u+9lAzemMt1vnhzo85ccPjph3zXEBtRdIYeQ9DQmNt9b9dlBx1U3dk9e87KMPeuEf0lhYFqjDkHqAgi8tTnT6hFqAM9zVO6gpSPGWCPfnLYZANbrcM6i73e7HLRMeHGs+PMVtEaixI5n1XkFNPd3/j7dDAjUDZry5BOrhcBj2+/3lL/wvHajhdsQWZ6CSznhO4XquLv58ivmFcwqXa37zF6hhtwrLuUaiOfG+3HrtJ2PIj3+7MKWbXbm61GU/zuU6cmuN7kANz3j4NGgdubpnAzWnc2yeuTqBOuZcpf24vwKgaMw991qlOjwR4/1p6Q/fyGteGmlXSSdzUjFXh6d6aC/NDfuQU/MNQHdn1FSTtO35HRCoz98jKcSXKbkgBzw4IFA9dEkadUYVAz4c0BnVR5+6VylQu0fAhwEC1UefulcpULtHwIcBAtVHn7pXKVC7R8CHAQLVR5+6VylQu0fAhwEC1UefulcpULtHwIcBAtVHn7pX+QfrtZt2Ck13iwAAAABJRU5ErkJggg=="}},{"insert":"dfsdf\nsdfsdfdsfdsfds\n"}]})
+
 const toolbarOptions = [
   ['bold', 'italic', 'underline', 'strike', 'link'],        // toggled buttons
   ['blockquote', 'code-block'],
@@ -92,7 +94,7 @@ window.onload = () => {
 
   window.quill = quill
   // test parse old table delta to new
-  // quill.setContents(tableDeltaParser(oldTableDelta2))
+  quill.setContents(tableDeltaParser(testDelta3))
 
   const tableModule = quill.getModule('table')
 

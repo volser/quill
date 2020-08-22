@@ -2,7 +2,12 @@ import Delta from 'quill-delta';
 import Quill from '../../core/quill';
 import Module from '../../core/module';
 
-import { getDraggableRootBlot, getDropableRootBlot, css } from './utils'
+import {
+  getDraggableRootBlot,
+  getDropableRootBlot,
+  isInlineRoot,
+  css
+} from './utils'
 
 const ICON_DRAG_ANCHOR = '<svg t="1596683681627" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5150" width="20" height="20"><path d="M362.666667 192m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5151" fill="#b1b1b1"></path><path d="M661.333333 192m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5152" fill="#b1b1b1"></path><path d="M362.666667 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5153" fill="#b1b1b1"></path><path d="M661.333333 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5154" fill="#b1b1b1"></path><path d="M362.666667 832m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5155" fill="#b1b1b1"></path><path d="M661.333333 832m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5156" fill="#b1b1b1"></path></svg>'
 const ICON_DRAG_ANCHOR_WIDTH = 20
@@ -47,8 +52,25 @@ export class DragDropBlocks extends Module {
 
     this.quill.root.addEventListener('dragover', evt => {
       evt.preventDefault()
+      evt.stopPropagation()
       if (!this.dragging) return
 
+      // dragging inline blot
+      if (this.isInlineRoot(this.draggingRoot)) {
+        const native = this.getNativeSelection(evt);
+        if (!native) {
+          return;
+        }
+        const selection = document.getSelection();
+        if (selection == null) {
+          return;
+        }
+        selection.removeAllRanges();
+        selection.addRange(native);
+        return
+      }
+
+      // dragging block blot
       const target = evt.target
       const overBlot = Quill.find(target, true)
       const dragOverRoot = this.getDropableRootBlot(overBlot, target)
@@ -85,6 +107,46 @@ export class DragDropBlocks extends Module {
         }
       }
     }, false)
+
+    this.quill.root.addEventListener('drop', evt => {
+      evt.preventDefault()
+      evt.stopPropagation()
+      if (!this.dragging || !this.isInlineRoot(this.draggingRoot)) return
+
+      const native = this.getNativeSelection(evt)
+      if (!native) {
+        return;
+      }
+      const normalized = this.quill.selection.normalizeNative(native);
+      const targetRange = this.quill.selection.normalizedToRange(normalized);
+      const draggingBlotIndex = this.quill.getIndex(this.draggingRoot)
+      const draggingBlotLength = this.draggingRoot.length()
+      const draggingBlotDelta = this.quill.getContents(draggingBlotIndex, draggingBlotLength)
+
+      let diff;
+      if (targetRange.index > draggingBlotIndex) {
+        diff = new Delta()
+          .retain(draggingBlotIndex)
+          .delete(draggingBlotLength)
+          .retain(targetRange.index - draggingBlotIndex - draggingBlotLength)
+          .concat(draggingBlotDelta);
+      } else {
+        diff = new Delta()
+          .retain(targetRange.index)
+          .concat(draggingBlotDelta)
+          .retain(draggingBlotIndex - targetRange.index)
+          .delete(draggingBlotLength);
+      }
+
+      this.quill.updateContents(diff, Quill.sources.USER);
+    })
+  }
+
+  isInlineRoot (blot) {
+    if (this.options.isInlineRoot) {
+      return this.options.isInlineRoot(blot)
+    }
+    return isInlineRoot(blot)
   }
 
   getDraggableRootBlot (blot, node) {
@@ -99,6 +161,24 @@ export class DragDropBlocks extends Module {
       return this.options.getDropableRootBlot(blot, node)
     }
     return getDropableRootBlot(blot, node)
+  }
+
+  getNativeSelection(e) {
+    if (!e) {
+      return;
+    }
+    let native;
+    if (document.caretRangeFromPoint) {
+      native = document.caretRangeFromPoint(e.clientX, e.clientY);
+    } else if (document.caretPositionFromPoint) {
+      const position = document.caretPositionFromPoint(e.clientX, e.clientY);
+      native = document.createRange();
+      native.setStart(position.offsetNode, position.offset);
+      native.setEnd(position.offsetNode, position.offset);
+    } else {
+      return;
+    }
+    return native;
   }
 
   resetDraggingHelpLine () {
@@ -221,7 +301,7 @@ export class DragDropBlocks extends Module {
         this.quill.root.classList.remove('ql-dragging-blocks')
       }
 
-      // change order
+      // change order for blocks
       if (this.draggingRoot !== this.dropRefRoot) {
         if (this.dropRefRoot) {
           this.dropRefRoot.parent.insertBefore(this.draggingRoot, this.dropRefRoot)

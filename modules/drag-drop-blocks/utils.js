@@ -1,4 +1,6 @@
 import Quill from '../../core/quill';
+import { EmbedBlot } from 'parchment';
+import Embed from '../../blots/embed'
 
 export const getDraggableRootBlot = (curBlot, node) => {
   let blotName
@@ -20,6 +22,8 @@ export const getDraggableRootBlot = (curBlot, node) => {
       return curBlot.table() &&
         curBlot.table().parent
     case 'list':
+      return curBlot
+    case 'image':
       return curBlot
     default:
       return null
@@ -52,6 +56,11 @@ export const getDropableRootBlot = (curBlot, node) => {
     default:
       return null
   }
+}
+
+export const isInlineRoot = (blot) => {
+  return blot instanceof EmbedBlot &&
+    !(blot instanceof Embed)
 }
 
 export function css (domNode, rules) {
