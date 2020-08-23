@@ -25,6 +25,8 @@ export const getDraggableRootBlot = (curBlot, node) => {
       return curBlot
     case 'image':
       return curBlot
+    case 'block':
+      return curBlot
     default:
       return null
   }

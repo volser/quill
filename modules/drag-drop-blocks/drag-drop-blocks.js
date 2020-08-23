@@ -1,6 +1,7 @@
 import Delta from 'quill-delta';
 import Quill from '../../core/quill';
 import Module from '../../core/module';
+import Break from '../../blots/break'
 
 import {
   getDraggableRootBlot,
@@ -27,7 +28,11 @@ export class DragDropBlocks extends Module {
     this.activeAnchor = null
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
 
-    this.quill.root.addEventListener('mouseover', evt => {
+    this.quill.on('text-change', evt => {
+      this.hideDraggableAnchor()
+    })
+
+    this.quill.root.addEventListener('mousemove', evt => {
       if (this.dragging) return 
       const target = evt.target
       const curBlot = Quill.find(target, true)
@@ -201,7 +206,18 @@ export class DragDropBlocks extends Module {
   }
 
   showDraggableAnchor (blot, node) {
-    if (!this.draggingRoot) return
+    if (!this.draggingRoot) {
+      return;
+    }
+    // prevent show anchor from over the empty block
+    if (blot &&
+      blot.statics.blotName === 'block' &&
+      blot.length() === 1 &&
+      blot.children.head instanceof Break
+    ) {
+      return;
+    }
+
     this.activeAnchor = this.quill.addContainer('cu-draggable-anchor')
     const dragIcon = document.createElement('div')
     dragIcon.classList.add('cu-draggable-anchor-icon')
