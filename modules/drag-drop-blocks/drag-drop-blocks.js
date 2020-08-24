@@ -307,6 +307,14 @@ export class DragDropBlocks extends Module {
       if (this.quill.root && this.quill.root.classList) {
         this.quill.root.classList.add('ql-dragging-blocks')
       }
+
+      const draggingDom = this.draggingRoot && this.draggingRoot.domNode
+      if (
+        draggingDom &&
+        draggingDom.classList
+      ) {
+        draggingDom.classList.add('ql-dragging-block-active')
+      }
     }
 
     function dragEndHanlder(e) {
@@ -324,6 +332,14 @@ export class DragDropBlocks extends Module {
         } else if (this.dragOverRoot) {
           this.dragOverRoot.parent.insertBefore(this.draggingRoot, null)
         }
+      }
+
+      const draggingDom = this.draggingRoot.domNode
+      if (
+        draggingDom &&
+        draggingDom.classList
+      ) {
+        draggingDom.classList.remove('ql-dragging-block-active')
       }
 
       this.hideDraggableAnchor()
