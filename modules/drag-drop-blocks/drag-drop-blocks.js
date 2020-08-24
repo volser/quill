@@ -33,8 +33,6 @@ export class DragDropBlocks extends Module {
     })
 
     this.quill.root.addEventListener('mousemove', evt => {
-      evt.preventDefault()
-      evt.stopPropagation()
       if (this.dragging) return
       const target = evt.target
       const curBlot = Quill.find(target, true)
@@ -55,7 +53,6 @@ export class DragDropBlocks extends Module {
       } else if (!curRoot) {
         this.hideDraggableAnchor()
       }
-      return
     }, false)
 
     this.quill.root.addEventListener('dragover', evt => {
