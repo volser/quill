@@ -55,6 +55,7 @@ export class DragDropBlocks extends Module {
       } else if (!curRoot) {
         this.hideDraggableAnchor()
       }
+      return
     }, false)
 
     this.quill.root.addEventListener('dragover', evt => {
