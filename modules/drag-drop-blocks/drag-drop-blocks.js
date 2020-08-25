@@ -334,7 +334,7 @@ export class DragDropBlocks extends Module {
         }
       }
 
-      const draggingDom = this.draggingRoot.domNode
+      const draggingDom = this.draggingRoot && this.draggingRoot.domNode
       if (
         draggingDom &&
         draggingDom.classList
