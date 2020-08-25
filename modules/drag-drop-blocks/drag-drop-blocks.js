@@ -28,12 +28,8 @@ export class DragDropBlocks extends Module {
     this.activeAnchor = null
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
 
-    this.quill.on('text-change', (newDelta, oldDelta) => {
-      if (
-        newDelta &&
-        oldDelta &&
-        newDelta.diff(oldDelta).length !== 0
-      ) {
+    this.quill.on('text-change', (newDelta, oldDelta, source) => {
+      if (source === Quill.sources.USER) {
         this.hideDraggableAnchor()
       }
     })
