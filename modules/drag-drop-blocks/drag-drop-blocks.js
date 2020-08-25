@@ -28,11 +28,8 @@ export class DragDropBlocks extends Module {
     this.activeAnchor = null
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
 
-    this.quill.on('text-change', (newDelta, oldDelta, source) => {
-      const newInsertDelta = oldDelta.compose(newDelta)
-      if (newInsertDelta.diff(oldDelta).length !== 0) {
-        this.hideDraggableAnchor()
-      }
+    this.quill.root.addEventListener('keydown', evt => {
+      this.hideDraggableAnchor()
     })
 
     this.quill.root.addEventListener('mousemove', evt => {
