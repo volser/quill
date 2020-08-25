@@ -29,7 +29,8 @@ export class DragDropBlocks extends Module {
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
 
     this.quill.on('text-change', (newDelta, oldDelta, source) => {
-      if (source === Quill.sources.USER) {
+      const newInsertDelta = oldDelta.compose(newDelta)
+      if (newInsertDelta.diff(oldDelta).length !== 0) {
         this.hideDraggableAnchor()
       }
     })
