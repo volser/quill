@@ -84,6 +84,7 @@ export class DragDropBlocks extends Module {
       this.dragOverRoot = dragOverRoot
       if (this.dragOverRoot && this.draggingRoot === this.dragOverRoot) {
         this.resetDraggingHelpLine()
+        this.dragOverRoot = null
       } else if (this.dragOverRoot && this.draggingRoot !== this.dragOverRoot) {
         const parent = this.quill.root.parentNode
         const containerRect = parent.getBoundingClientRect()
