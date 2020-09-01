@@ -833,6 +833,20 @@ class ListItem extends Block {
       !!this.domNode.getAttribute('data-list-toggle')
   }
 
+  hasToggleChildren() {
+    const curIndent = this.formats()['indent'] || 0
+
+    if (this.next) {
+      const nextFormats = this.next.formats()
+      return nextFormats &&
+        nextFormats.list &&
+        nextFormats.indent &&
+        nextFormats.indent > curIndent
+    } else {
+      return false
+    }
+  }
+
   expandItem() {
     if (this.isToggleListItem()) {
       this.domNode.setAttribute('data-list-toggle', true)
@@ -896,7 +910,6 @@ class ListItem extends Block {
 
   optimize(context) {
     const { row, cell, rowspan, colspan } = ListItem.formats(this.domNode)
-
     if (this.statics.requiredContainer &&
       !(this.parent instanceof this.statics.requiredContainer)) {
       this.wrap(this.statics.requiredContainer.blotName, {

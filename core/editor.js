@@ -338,6 +338,10 @@ function getListType(type) {
       return [tag, ' data-list="ordered"'];
     case 'bullet':
       return [tag, ' data-list="bullet"'];
+    case 'toggled':
+      return [tag, ' data-list="toggled"'];
+    case 'none':
+      return [tag, ' data-list="none"'];
     default:
       return [tag, ''];
   }

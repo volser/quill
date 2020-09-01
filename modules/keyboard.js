@@ -420,7 +420,24 @@ Keyboard.DEFAULTS = {
         const lineFormats = line.formats()
         if (line.isToggleListItem()) {
           if (line.isThisItemExpanded()) {
-            return true
+            const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
+            const newLineFormats = {
+              ...lineFormats,
+              indent: newLineIndent,
+              list: Object.assign(
+                {},
+                lineFormats.list,
+                { list: 'none' }
+              )
+            }
+            const delta = new Delta()
+              .retain(range.index)
+              .delete(range.length)
+              .insert('\n', lineFormats)
+              .retain(1, newLineFormats);
+            this.quill.updateContents(delta, Quill.sources.USER);
+            this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+            this.quill.focus();
           } else {
             const childItems = line.getToggleListItemChildren()
             const skipLength = childItems.reduce((len, childItem) => {
