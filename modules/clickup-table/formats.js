@@ -446,7 +446,7 @@ class TableContainer extends Container {
   updateTableWidth() {
     setTimeout(() => {
       const colGroup = this.colGroup()
-      if (!colGroup) return
+      if (!colGroup || !this.domNode.parentNode) return
       const tableWidth = colGroup.children.reduce((sumWidth, col) => {
         sumWidth = sumWidth + parseInt(col.formats()[TableCol.blotName].width, 10)
         return sumWidth
@@ -468,9 +468,9 @@ class TableContainer extends Container {
         if (tableWidth <= WIDE_TABLE_WIDTH) {
           this.domNode.parentNode.style.maxWidth = ''
         } else if (
-          (tableWidth < editorWidth - pl - pr && tableWidth > WIDE_TABLE_WIDTH) &&
-          this.domNode.parentNode
-          ) {
+          tableWidth < editorWidth - pl - pr &&
+          tableWidth > WIDE_TABLE_WIDTH
+        ) {
           this.domNode.parentNode.style.maxWidth = `${tableWidth + 1}px`
         } else {
           this.domNode.parentNode.style.maxWidth = `100%`
