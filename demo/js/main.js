@@ -65,7 +65,8 @@ window.onload = () => {
       toolbar: toolbarOptions,
       dragDropBlocks: {
         anchorOffsetLeft: () => 1,
-        anchorAlignCenter: () => true
+        anchorAlignCenter: () => true,
+        dragStartCallback: (e, draggingBlot) => console.log(draggingBlot)
       },
       table: {
         tableTools: {
