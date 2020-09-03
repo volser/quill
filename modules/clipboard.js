@@ -165,7 +165,13 @@ class Clipboard extends Module {
       const text = e.clipboardData.getData('text/plain');
 
       // bugfix: Disable pasting tables inside the table it breaks the structure
-      if (isExistTableInTheHTMLString(html)) return false
+      if (isExistTableInTheHTMLString(html)) {
+        const normalizedHtmlStr = html.replace(/[\r\n]/g,"")
+        const tds = normalizedHtmlStr.match(/<(td).*?\<\/\1\>/g)
+        if (tds && tds.length > 1) {
+          return;
+        }
+      }
 
       const files = Array.from(e.clipboardData.files || []);
       if (!html && files.length > 0) {
