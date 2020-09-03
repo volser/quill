@@ -161,7 +161,7 @@ class Clipboard extends Module {
     // Process pasting in table-cell-line before
     const [thisLeaf] = this.quill.getLine(range.index);
     if (thisLeaf && thisLeaf.constructor.name === 'TableCellLine') {
-      const html = e.clipboardData.getData('text/html');
+      let html = e.clipboardData.getData('text/html');
       const text = e.clipboardData.getData('text/plain');
 
       // bugfix: Disable pasting tables inside the table it breaks the structure
@@ -170,6 +170,8 @@ class Clipboard extends Module {
         const tds = normalizedHtmlStr.match(/<(td).*?\<\/\1\>/g)
         if (tds && tds.length > 1) {
           return;
+        } else if (tds && tds.length === 1) {
+          html = html.replace(/<(colgroup).*?\<\/\1\>/g, '')
         }
       }
 
