@@ -1,4 +1,5 @@
 import Quill from "../../core/quill"
+import { css } from "../clickup-table-control/utils"
 
 const Block = Quill.import("blots/block")
 const Container = Quill.import("blots/container")
@@ -752,9 +753,6 @@ class ListItem extends Block {
     super(scroll, domNode);
     const ui = domNode.ownerDocument.createElement('span');
     const format = this.statics.formats(domNode, scroll);
-    if (format.list === 'toggled') {
-      this.domNode.setAttribute('data-list-toggle', true)
-    }
 
     const listEventHandler = e => {
       if (!scroll.isEnabled()) return;
@@ -908,19 +906,7 @@ class ListItem extends Block {
     }
   }
 
-  optimize(context) {
-    const { row, cell, rowspan, colspan } = ListItem.formats(this.domNode)
-    if (this.statics.requiredContainer &&
-      !(this.parent instanceof this.statics.requiredContainer)) {
-      this.wrap(this.statics.requiredContainer.blotName, {
-        row,
-        cell,
-        colspan,
-        rowspan
-      })
-    }
-
-    // set own visibility
+  getToggleParents() {
     let prev = this.prev
     let prevFormat = prev && prev.formats()
     let prevIndent = prevFormat && prevFormat.indent || 0
@@ -943,7 +929,23 @@ class ListItem extends Block {
       prevFormat = prev && prev.formats()
       prevIndent = prevFormat && prevFormat.indent || 0
     }
+    return parents
+  }
 
+  optimize(context) {
+    const { row, cell, rowspan, colspan } = ListItem.formats(this.domNode)
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        row,
+        cell,
+        colspan,
+        rowspan
+      })
+    }
+
+    // set own visibility
+    const parents = this.getToggleParents()
     const isExpanded = parents.every(parent => {
       return parent.domNode.getAttribute('data-list-toggle') ||
         (
@@ -951,8 +953,13 @@ class ListItem extends Block {
           parent.formats().list.list !== 'toggled'
         )
     })
-    
-    this.domNode.style.display = `${isExpanded ? 'block' : 'none'}`
+
+    css(this.domNode, {
+      display: `${isExpanded ? 'block' : 'none'}`
+    })
+    css(this.uiNode, {
+      opacity: `${ this.hasToggleChildren() ? '1' : '0.5' }`
+    })
 
     super.optimize(context)
   }
