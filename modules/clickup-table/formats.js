@@ -958,7 +958,7 @@ class ListItem extends Block {
       display: `${isExpanded ? 'block' : 'none'}`
     })
     css(this.uiNode, {
-      opacity: `${ this.hasToggleChildren() ? '1' : '0.5' }`
+      opacity: `${ (!this.isToggleListItem() || this.hasToggleChildren()) ? '1' : '0.5' }`
     })
 
     super.optimize(context)
