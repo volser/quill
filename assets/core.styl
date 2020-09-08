@@ -103,6 +103,16 @@ resets(arr)
       > .ql-ui:before
         transform: rotate(0)
 
+    > .ql-togglelist-placeholder
+      position: absolute
+      transform: translateY(100%)
+      color: rgba(55, 53, 47, 0.4)
+      white-space: nowrap
+
+      &:hover
+        background-color: rgba(240, 240, 240, .6)
+        cursor: pointer
+
   li[data-list=ordered]
     counter-reset: resets(1..MAX_INDENT)
     counter-increment: list-0

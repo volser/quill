@@ -1,4 +1,5 @@
 import Quill from "../../core/quill"
+import Delta from "quill-delta"
 import { css } from "../clickup-table-control/utils"
 
 const Block = Quill.import("blots/block")
@@ -753,6 +754,34 @@ class ListItem extends Block {
     super(scroll, domNode);
     const ui = domNode.ownerDocument.createElement('span');
     const format = this.statics.formats(domNode, scroll);
+    let uiPlaceHolder  = null
+    if (this.isToggleListItem()) {
+      uiPlaceHolder = domNode.ownerDocument.createElement('span')
+      uiPlaceHolder.innerText = 'Empty toggle. Click inside.'
+    }
+
+    const placeholderClickHandler = e => {
+      if (!scroll.isEnabled()) return;
+      const quill = Quill.find(scroll.domNode.parentNode)
+      const index = quill.getIndex(this)
+      const listFormats = this.formats()
+      const newLineIndent = listFormats.indent ? (listFormats.indent + 1 ): 1
+      const newLineFormats = {
+        ...listFormats,
+        indent: newLineIndent,
+        list: Object.assign(
+          {},
+          listFormats.list,
+          { list: 'none' }
+        )
+      }
+
+      const delta = new Delta()
+        .retain(index + this.length())
+        .insert('\n', newLineFormats);
+      quill.updateContents(delta, Quill.sources.USER);
+      quill.setSelection(index + this.length(), Quill.sources.SILENT);
+    }
 
     const listEventHandler = e => {
       if (!scroll.isEnabled()) return;
@@ -784,6 +813,22 @@ class ListItem extends Block {
     ui.addEventListener('mousedown', listEventHandler);
     ui.addEventListener('touchstart', listEventHandler);
     this.attachUI(ui);
+
+    if (uiPlaceHolder) {
+      uiPlaceHolder.addEventListener('mousedown', placeholderClickHandler);
+      uiPlaceHolder.addEventListener('touchstart', placeholderClickHandler);
+      this.attachUiPlaceHolder(uiPlaceHolder)
+    }
+  }
+
+  attachUiPlaceHolder(node) {
+    if (this.placeholder != null) {
+      this.placeholder.remove();
+    }
+    this.placeholder = node;
+    this.placeholder.classList.add('ql-togglelist-placeholder');
+    this.placeholder.setAttribute('contenteditable', 'false');
+    this.domNode.insertBefore(this.placeholder, null);
   }
 
   format(name, value) {
@@ -960,11 +1005,31 @@ class ListItem extends Block {
     css(this.uiNode, {
       opacity: `${ (!this.isToggleListItem() || this.hasToggleChildren()) ? '1' : '0.5' }`
     })
+    
+    // set placeholder visibility
+    if (this.placeholder) {
+      const lineHeight = window.getComputedStyle(this.domNode)
+        .getPropertyValue('line-height')
+
+      css(this.domNode, {
+        marginBottom: `${
+          this.isToggleListItem() &&
+          !this.hasToggleChildren() &&
+          this.isThisItemExpanded() ? lineHeight : ''
+        }`
+      })
+
+      css(this.placeholder, {
+        display: `${
+          this.isToggleListItem() &&
+          !this.hasToggleChildren() &&
+          this.isThisItemExpanded() ? 'block' : 'none'
+        }`
+      })
+    }
 
     super.optimize(context)
   }
-
-  
 }
 ListItem.blotName = 'list';
 ListItem.tagName = 'LI';
