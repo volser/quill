@@ -757,7 +757,7 @@ class ListItem extends Block {
     let uiPlaceHolder  = null
     if (this.isToggleListItem()) {
       uiPlaceHolder = domNode.ownerDocument.createElement('span')
-      uiPlaceHolder.innerText = 'Empty toggle. Click inside.'
+      uiPlaceHolder.innerText = 'Empty. Click or drag text/images inside'
     }
 
     const placeholderClickHandler = e => {

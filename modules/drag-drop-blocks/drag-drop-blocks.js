@@ -2,6 +2,7 @@ import Delta from 'quill-delta';
 import Quill from '../../core/quill';
 import Module from '../../core/module';
 import Break from '../../blots/break'
+import Block from '../../blots/block'
 
 import {
   getDraggableRootBlot,
@@ -27,6 +28,8 @@ export class DragDropBlocks extends Module {
     this.dropRefRoot = null
     this.activeAnchor = null
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
+    // for togglelist placeholder
+    this.dragOverPlaceholder = null
 
     this.quill.root.addEventListener('keydown', evt => {
       this.hideDraggableAnchor()
@@ -59,6 +62,40 @@ export class DragDropBlocks extends Module {
       evt.preventDefault()
       evt.stopPropagation()
       if (!this.dragging) return
+
+      // dragging over the toggle list placeholder
+      if (
+        evt.target.classList.contains('ql-togglelist-placeholder') &&
+        evt.target.parentNode.tagName === 'LI'
+      ) {
+        this.resetDraggingHelpLine()
+        const selection = document.getSelection();
+        selection.removeAllRanges()
+        this.dragOverPlaceholder = evt.target
+        if (
+          this.draggingRoot instanceof Block ||
+          this.isInlineRoot(this.draggingRoot)
+        ) {
+          if (
+            !this.dragOverPlaceholder.classList.contains('allowed-active') &&
+            !this.dragOverPlaceholder.classList.contains('not-allowed-active')
+          ) {
+            this.dragOverPlaceholder.classList.add('allowed-active')
+          }
+        } else {
+          if (
+            !this.dragOverPlaceholder.classList.contains('allowed-active') &&
+            !this.dragOverPlaceholder.classList.contains('not-allowed-active')
+          ) {
+            this.dragOverPlaceholder.classList.add('not-allowed-active')
+          }
+        }
+        this.dragOverRoot = null
+        this.dropRefRoot = null
+        return;
+      } else {
+        this.resetDragOverPlaceholder()
+      }
 
       // dragging inline blot
       if (this.isInlineRoot(this.draggingRoot)) {
@@ -130,13 +167,56 @@ export class DragDropBlocks extends Module {
       if (!native) {
         return;
       }
-      const normalized = this.quill.selection.normalizeNative(native);
-      const targetRange = this.quill.selection.normalizedToRange(normalized);
+
       const draggingBlotIndex = this.quill.getIndex(this.draggingRoot)
       const draggingBlotLength = this.draggingRoot.length()
       const draggingBlotDelta = this.quill.getContents(draggingBlotIndex, draggingBlotLength)
-
       let diff;
+      let format;
+      // drop inline blot into the placeholder of toggle list
+      if (this.dragOverPlaceholder) {
+        const list = Quill.find(this.dragOverPlaceholder.parentNode, true)
+        const listIndex = this.quill.getIndex(list)
+        const listFormats = list.formats()
+        const listIndent = listFormats.indent || 0
+
+        if (listIndex > draggingBlotIndex) {
+          diff = new Delta()
+            .retain(draggingBlotIndex)
+            .delete(draggingBlotLength)
+            .retain(listIndex - draggingBlotIndex - draggingBlotLength + list.length())
+            .concat(draggingBlotDelta)
+            .insert('\n', {
+              list: Object.assign(
+                {},
+                listFormats.list,
+                { list: 'none' }
+              ),
+              indent: listIndent + 1
+            })
+        } else {
+          diff = new Delta()
+            .retain(listIndex + list.length())
+            .concat(draggingBlotDelta)
+            .insert('\n', {
+              list: Object.assign(
+                {},
+                listFormats.list,
+                { list: 'none' }
+              ),
+              indent: listIndent + 1
+            })
+            .retain(draggingBlotIndex - listIndex - list.length())
+            .delete(draggingBlotLength);
+        }
+
+        this.quill.updateContents(diff, Quill.sources.USER);
+        return;
+      }
+
+      // drop inline blot into any blocks
+      const normalized = this.quill.selection.normalizeNative(native);
+      const targetRange = this.quill.selection.normalizedToRange(normalized);
       if (targetRange.index > draggingBlotIndex) {
         diff = new Delta()
           .retain(draggingBlotIndex)
@@ -202,6 +282,15 @@ export class DragDropBlocks extends Module {
         left: '0',
         top: '0'
       })
+    }
+  }
+  
+  resetDragOverPlaceholder () {
+    if (this.dragOverPlaceholder) {
+      this.dragOverPlaceholder.classList.remove('allowed-active')
+      this.dragOverPlaceholder.classList.remove('not-allowed-active')
+      // this.dragOverPlaceholder.removeAttribute('style')
+      this.dragOverPlaceholder = null
     }
   }
 
@@ -340,8 +429,64 @@ export class DragDropBlocks extends Module {
         this.quill.root.classList.remove('ql-dragging-blocks')
       }
 
-      // change order for blocks
-      if (this.draggingRoot !== this.dropRefRoot) {
+      // drop blocks into toggle list placeholder
+      if (
+        !this.isInlineRoot(this.draggingRoot) &&
+        this.draggingRoot instanceof Block &&
+        this.dragOverPlaceholder
+      ) {
+        const list = Quill.find(this.dragOverPlaceholder.parentNode, true)
+        const listIndex = this.quill.getIndex(list)
+        const listFormats = list.formats()
+        const listIndent = listFormats.indent || 0
+        const draggingRootIndex = this.quill.getIndex(this.draggingRoot)
+        const draggingRootLength = this.draggingRoot.length()
+        const insertDelta = this.quill.getContents(draggingRootIndex, this.draggingRoot.length())
+
+        let diff
+        let format
+        if (listIndex > draggingRootIndex) {
+          diff = new Delta()
+            .retain(draggingRootIndex)
+            .delete(draggingRootLength)
+            .retain(listIndex - draggingRootIndex - draggingRootLength + list.length())
+            .concat(insertDelta);
+
+          format = new Delta()
+            .retain(listIndex + list.length() - 1)
+            .retain(1, {
+              list: Object.assign(
+                {},
+                listFormats.list,
+                { list: 'none' }
+              ),
+              indent: listIndent + 1
+            });
+        } else {
+          diff = new Delta()
+            .retain(listIndex + list.length())
+            .concat(insertDelta)
+            .retain(draggingRootIndex - listIndex - list.length())
+            .delete(draggingRootLength);
+
+          format = new Delta()
+            .retain(listIndex + list.length() + draggingRootLength - 1)
+            .retain(1, {
+              list: Object.assign(
+                {},
+                listFormats.list,
+                { list: 'none' }
+              ),
+              indent: listIndent + 1
+            });
+        }
+        diff = diff.compose(format)
+        this.quill.updateContents(diff, Quill.sources.USER);
+      } else if (
+        !this.isInlineRoot(this.draggingRoot) &&
+        this.draggingRoot !== this.dropRefRoot
+      ) {
+        // change order for blocks
         if (this.dropRefRoot) {
           this.dropRefRoot.parent.insertBefore(this.draggingRoot, this.dropRefRoot)
         } else if (this.dragOverRoot) {
@@ -358,6 +503,7 @@ export class DragDropBlocks extends Module {
       }
 
       this.hideDraggableAnchor()
+      this.resetDragOverPlaceholder()
 
       if (
         this.options.dragEndCallback &&
