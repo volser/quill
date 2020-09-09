@@ -23,7 +23,8 @@ resets(arr)
 
 .ql-container:not(.ql-disabled)
   li[data-list=checked],
-  li[data-list=unchecked]
+  li[data-list=unchecked],
+  li[data-list=toggled]
     > .ql-ui
       cursor: pointer
 
@@ -88,6 +89,29 @@ resets(arr)
     content: '\2611'
   li[data-list=unchecked] > .ql-ui:before
     content: '\2610'
+  li[data-list=toggled] > .ql-ui:before
+    content: '\25be'
+    transform-origin: center center
+    transition: transform 0.2s linear;
+    width: auto
+
+  li[data-list=toggled]
+    > .ql-ui:before
+      transform: rotate(-90deg)
+    
+    &[data-list-toggle]
+      > .ql-ui:before
+        transform: rotate(0)
+
+    > .ql-togglelist-placeholder
+      position: absolute
+      transform: translateY(100%)
+      color: rgba(55, 53, 47, 0.4)
+      white-space: nowrap
+
+      &:hover
+        background-color: rgba(240, 240, 240, .6)
+        cursor: pointer
 
   li[data-list=ordered]
     counter-reset: resets(1..MAX_INDENT)

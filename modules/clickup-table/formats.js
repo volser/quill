@@ -1,4 +1,6 @@
 import Quill from "../../core/quill"
+import Delta from "quill-delta"
+import { css } from "../clickup-table-control/utils"
 
 const Block = Quill.import("blots/block")
 const Container = Quill.import("blots/container")
@@ -751,6 +753,36 @@ class ListItem extends Block {
   constructor(scroll, domNode) {
     super(scroll, domNode);
     const ui = domNode.ownerDocument.createElement('span');
+    const format = this.statics.formats(domNode, scroll);
+    let uiPlaceHolder  = null
+    if (this.isToggleListItem()) {
+      uiPlaceHolder = domNode.ownerDocument.createElement('span')
+      uiPlaceHolder.innerText = 'Empty toggle. Click inside.'
+    }
+
+    const placeholderClickHandler = e => {
+      if (!scroll.isEnabled()) return;
+      const quill = Quill.find(scroll.domNode.parentNode)
+      const index = quill.getIndex(this)
+      const listFormats = this.formats()
+      const newLineIndent = listFormats.indent ? (listFormats.indent + 1 ): 1
+      const newLineFormats = {
+        ...listFormats,
+        indent: newLineIndent,
+        list: Object.assign(
+          {},
+          listFormats.list,
+          { list: 'none' }
+        )
+      }
+
+      const delta = new Delta()
+        .retain(index + this.length())
+        .insert('\n', newLineFormats);
+      quill.updateContents(delta, Quill.sources.USER);
+      quill.setSelection(index + this.length(), Quill.sources.SILENT);
+    }
+
     const listEventHandler = e => {
       if (!scroll.isEnabled()) return;
       const format = this.statics.formats(domNode, scroll);
@@ -760,11 +792,43 @@ class ListItem extends Block {
       } else if (format.list === 'unchecked') {
         this.format('list', 'checked');
         e.preventDefault();
+      } else if (format.list === 'toggled') {
+        const isExpanded = this.isThisItemExpanded()
+        if (isExpanded) {
+          this.collapseItem()
+        } else {
+          this.expandItem()
+        }
+        // update height of table row tool if this list was in a table
+        const quill = Quill.find(scroll.domNode.parentNode)
+        const editorElem = scroll.domNode
+        if (quill && editorElem) {
+          const tableModule = quill.getModule('table')
+          if (tableModule && tableModule.table && tableModule.rowTool) {
+            window.setTimeout(tableModule.rowTool.updateToolCells(), 0)
+          }
+        }
       }
     };
     ui.addEventListener('mousedown', listEventHandler);
     ui.addEventListener('touchstart', listEventHandler);
     this.attachUI(ui);
+
+    if (uiPlaceHolder) {
+      uiPlaceHolder.addEventListener('mousedown', placeholderClickHandler);
+      uiPlaceHolder.addEventListener('touchstart', placeholderClickHandler);
+      this.attachUiPlaceHolder(uiPlaceHolder)
+    }
+  }
+
+  attachUiPlaceHolder(node) {
+    if (this.placeholder != null) {
+      this.placeholder.remove();
+    }
+    this.placeholder = node;
+    this.placeholder.classList.add('ql-togglelist-placeholder');
+    this.placeholder.setAttribute('contenteditable', 'false');
+    this.domNode.insertBefore(this.placeholder, null);
   }
 
   format(name, value) {
@@ -802,9 +866,119 @@ class ListItem extends Block {
     }
   }
 
+  isToggleListItem() {
+    const formats = this.formats()
+    return formats && formats.list && formats.list.list === 'toggled'
+  }
+
+  isThisItemExpanded() {
+    return this.isToggleListItem() &&
+      !!this.domNode.getAttribute('data-list-toggle')
+  }
+
+  hasToggleChildren() {
+    const curIndent = this.formats()['indent'] || 0
+
+    if (this.next) {
+      const nextFormats = this.next.formats()
+      return nextFormats &&
+        nextFormats.list &&
+        nextFormats.indent &&
+        nextFormats.indent > curIndent
+    } else {
+      return false
+    }
+  }
+
+  expandItem() {
+    if (this.isToggleListItem()) {
+      this.domNode.setAttribute('data-list-toggle', true)
+      this.toggleChildren()
+    }
+  }
+
+  collapseItem() {
+    if (this.isToggleListItem()) {
+      this.domNode.removeAttribute('data-list-toggle')
+      this.toggleChildren()
+    }
+  }
+
+  getToggleListItemChildren() {
+    if (!this.isToggleListItem()) return []
+    const children = []
+    const curFormat = this.formats();
+    const curIndent = curFormat.indent || 0
+    let next = this.next
+    let nextFormat = next && next.formats()
+    let nextIndent = nextFormat && nextFormat.indent || 0
+    while (
+      next &&
+      next.statics.blotName === ListItem.blotName
+    ) {
+      if (nextIndent - curIndent > 0) {
+        children.push(next)
+        next = next.next
+        nextFormat = next && next.formats()
+        nextIndent = nextFormat && nextFormat.indent || 0
+      } else {
+        next = null
+      }
+    }
+    return children
+  }
+
+  toggleChildren() {
+    const curFormat = this.formats();
+    const curIndent = curFormat.indent || 0
+    if (curFormat.list.list === 'toggled') {
+      let next = this.next
+      let nextFormat = next && next.formats()
+      let nextIndent = nextFormat && nextFormat.indent || 0
+      while (
+        next &&
+        next.statics.blotName === ListItem.blotName
+      ) {
+        if (nextIndent - curIndent > 0) {
+          next.optimize()
+          next = next.next
+          nextFormat = next && next.formats()
+          nextIndent = nextFormat && nextFormat.indent || 0
+        } else {
+          next = null
+        }
+      }
+    }
+  }
+
+  getToggleParents() {
+    let prev = this.prev
+    let prevFormat = prev && prev.formats()
+    let prevIndent = prevFormat && prevFormat.indent || 0
+    let parent = this
+    let parentFormat = parent && parent.formats()
+    let parentIndent = parentFormat && parentFormat.indent || 0
+    const parents = []
+    while (
+      prev &&
+      prev.statics.blotName === ListItem.blotName
+    ) {
+      if (parentIndent - prevIndent > 0) {
+        parent = prev
+        parentFormat = prevFormat
+        parentIndent = prevIndent
+        parents.push(prev)
+      }
+
+      prev = prev.prev
+      prevFormat = prev && prev.formats()
+      prevIndent = prevFormat && prevFormat.indent || 0
+    }
+    return parents
+  }
+
   optimize(context) {
     const { row, cell, rowspan, colspan } = ListItem.formats(this.domNode)
-
     if (this.statics.requiredContainer &&
       !(this.parent instanceof this.statics.requiredContainer)) {
       this.wrap(this.statics.requiredContainer.blotName, {
@@ -814,6 +988,46 @@ class ListItem extends Block {
         rowspan
       })
     }
+
+    // set own visibility
+    const parents = this.getToggleParents()
+    const isExpanded = parents.every(parent => {
+      return parent.domNode.getAttribute('data-list-toggle') ||
+        (
+          parent.formats() && parent.formats().list &&
+          parent.formats().list.list !== 'toggled'
+        )
+    })
+
+    css(this.domNode, {
+      display: `${isExpanded ? 'block' : 'none'}`
+    })
+    css(this.uiNode, {
+      opacity: `${ (!this.isToggleListItem() || this.hasToggleChildren()) ? '1' : '0.5' }`
+    })
+    
+    // set placeholder visibility
+    if (this.placeholder) {
+      const lineHeight = window.getComputedStyle(this.domNode)
+        .getPropertyValue('line-height')
+
+      css(this.domNode, {
+        marginBottom: `${
+          this.isToggleListItem() &&
+          !this.hasToggleChildren() &&
+          this.isThisItemExpanded() ? lineHeight : ''
+        }`
+      })
+
+      css(this.placeholder, {
+        display: `${
+          this.isToggleListItem() &&
+          !this.hasToggleChildren() &&
+          this.isThisItemExpanded() ? 'block' : 'none'
+        }`
+      })
+    }
+
     super.optimize(context)
   }
 }

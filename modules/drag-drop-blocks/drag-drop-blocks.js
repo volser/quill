@@ -112,6 +112,13 @@ export class DragDropBlocks extends Module {
           this.dropRefRoot = this.dragOverRoot.next
         }
       }
+
+      if (
+        this.options.dragOverCallback &&
+        typeof this.options.dragOverCallback === 'function'
+      ) {
+        this.options.dragOverCallback(evt, this.dragOverRoot)
+      }
     }, false)
 
     this.quill.root.addEventListener('drop', evt => {
@@ -316,6 +323,13 @@ export class DragDropBlocks extends Module {
       ) {
         draggingDom.classList.add('ql-dragging-block-active')
       }
+
+      if (
+        this.options.dragStartCallback &&
+        typeof this.options.dragStartCallback === 'function'
+      ) {
+        this.options.dragStartCallback(e, this.draggingRoot)
+      }
     }
 
     function dragEndHanlder(e) {
@@ -344,6 +358,13 @@ export class DragDropBlocks extends Module {
       }
 
       this.hideDraggableAnchor()
+
+      if (
+        this.options.dragEndCallback &&
+        typeof this.options.dragEndCallback === 'function'
+      ) {
+        this.options.dragEndCallback(e)
+      }
 
       // reposition table tools
       setTimeout(() => {
