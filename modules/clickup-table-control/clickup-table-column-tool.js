@@ -298,6 +298,7 @@ export default class TableColumnControl {
 
     const handleDrag = e => {
       e.preventDefault()
+      e.stopPropagation()
 
       if (dragging) {
         x = e.clientX
@@ -316,6 +317,8 @@ export default class TableColumnControl {
 
     const handleMouseup = e => {
       e.preventDefault()
+      e.stopPropagation()
+
       const existCells = Array.from(this.domNode.querySelectorAll('.cu-col-tool-cell'))
       const colIndex = existCells.indexOf(cell)
       const colBlot = tableContainer.colGroup().children.at(colIndex)
@@ -342,6 +345,9 @@ export default class TableColumnControl {
     }
 
     const handleMousedown = e => {
+      e.preventDefault()
+      e.stopPropagation()
+
       document.addEventListener('mousemove', handleDrag, false)
       document.addEventListener('mouseup', handleMouseup, false)
 
