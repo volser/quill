@@ -335,8 +335,8 @@ export default class TableColumnControl {
         $holder.classList.remove('dragging')
       }
 
-      document.removeEventListener('mousemove', handleDrag, false)
-      document.removeEventListener('mouseup', handleMouseup, false)
+      document.removeEventListener('mousemove', handleDrag)
+      document.removeEventListener('mouseup', handleMouseup)
       tableRect = {}
       cellRect = {}
       $helpLine.remove()
@@ -348,8 +348,8 @@ export default class TableColumnControl {
       e.preventDefault()
       e.stopPropagation()
 
-      document.addEventListener('mousemove', handleDrag, false)
-      document.addEventListener('mouseup', handleMouseup, false)
+      document.addEventListener('mousemove', handleDrag)
+      document.addEventListener('mouseup', handleMouseup)
 
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
@@ -374,7 +374,7 @@ export default class TableColumnControl {
       width0 = cellRect.width
       $holder.classList.add('dragging')
     }
-    $holder.addEventListener('mousedown', handleMousedown, false)
+    $holder.addEventListener('mousedown', handleMousedown)
   }
 
   reposition() {
