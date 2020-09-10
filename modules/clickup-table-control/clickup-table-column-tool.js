@@ -214,7 +214,6 @@ export default class TableColumnControl {
       this.helpLine.classList.add('cu-help-line')
       this.helpLine.classList.add('cu-help-line-col')
       css(this.helpLine, {
-        position: 'absolute',
         left: `${cellRect.left - containerRect.left + parent.scrollLeft - 1}px`,
         top: `${cellRect.top - containerRect.top + parent.scrollTop}px`,
         zIndex: `${this.options.zIndex || 100}`,
@@ -259,7 +258,6 @@ export default class TableColumnControl {
       this.helpLine.classList.add('cu-help-line')
       this.helpLine.classList.add('cu-help-line-col')
       css(this.helpLine, {
-        position: 'absolute',
         left: `${cellRect.left + cellRect.width - containerRect.left + parent.scrollLeft - 2}px`,
         top: `${cellRect.top - containerRect.top + parent.scrollTop}px`,
         zIndex: `${this.options.zIndex || 100}`,
@@ -285,6 +283,8 @@ export default class TableColumnControl {
   addColCellHolderHandler(cell) {
     const tableContainer = Quill.find(this.table)
     const $holder = cell.querySelector(".cu-col-tool-cell-holder")
+    const parent = this.quill.root.parentNode
+    const containerRect = parent.getBoundingClientRect()
     let dragging = false
     let x0 = 0
     let x = 0
@@ -309,7 +309,7 @@ export default class TableColumnControl {
         }
 
         css($helpLine, {
-          'left': `${cellRect.left + cellRect.width - 1 + delta}px`
+          'left': `${cellRect.left + cellRect.width - containerRect.left + parent.scrollLeft - 2 + delta}px`
         })
       }
     }
@@ -358,16 +358,15 @@ export default class TableColumnControl {
       $helpLine.classList.add('cu-help-line')
       $helpLine.classList.add('cu-help-line-col')
       css($helpLine, {
-        position: 'fixed',
-        top: `${cellRect.top}px`,
-        left: `${cellRect.left + cellRect.width - 1}px`,
+        left: `${cellRect.left + cellRect.width - containerRect.left + parent.scrollLeft - 1}px`,
+        top: `${cellRect.top - containerRect.top + parent.scrollTop}px`,
         zIndex: `${this.options.zIndex || 100}`,
         height: `${tableViewRect.height + COL_TOOL_HEIGHT - COL_TOOL_ADD_BUTTON_HEIGHT}px`,
         width: '1px',
         backgroundColor: PRIMARY_COLOR
       })
 
-      document.body.appendChild($helpLine)
+      parent.appendChild($helpLine)
       dragging = true
       x0 = e.clientX
       width0 = cellRect.width
