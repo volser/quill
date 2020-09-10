@@ -565,7 +565,7 @@ Keyboard.DEFAULTS = {
       },
     },
 
-    'table-cell-line backspace': {
+    'table-cell-line short backspace': {
       key: 'Backspace',
       shortKey: true,
       format: ['table-cell-line'],
