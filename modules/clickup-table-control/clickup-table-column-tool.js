@@ -297,7 +297,6 @@ export default class TableColumnControl {
     let $helpLine = null
 
     const handleDrag = e => {
-      e.preventDefault()
       e.stopPropagation()
 
       if (dragging) {
@@ -335,8 +334,8 @@ export default class TableColumnControl {
         $holder.classList.remove('dragging')
       }
 
-      document.removeEventListener('mousemove', handleDrag)
-      document.removeEventListener('mouseup', handleMouseup)
+      document.body.removeEventListener('mousemove', handleDrag)
+      document.body.removeEventListener('mouseup', handleMouseup)
       tableRect = {}
       cellRect = {}
       $helpLine.remove()
@@ -348,8 +347,8 @@ export default class TableColumnControl {
       e.preventDefault()
       e.stopPropagation()
 
-      document.addEventListener('mousemove', handleDrag)
-      document.addEventListener('mouseup', handleMouseup)
+      document.body.addEventListener('mousemove', handleDrag)
+      document.body.addEventListener('mouseup', handleMouseup)
 
       tableRect = this.table.getBoundingClientRect()
       tableViewRect = this.table.parentNode.getBoundingClientRect()
