@@ -810,13 +810,12 @@ class ListItem extends Block {
         }
       }
     };
-    ui.addEventListener('mousedown', listEventHandler);
-    ui.addEventListener('touchstart', listEventHandler);
+    
+    ui.addEventListener('click', listEventHandler);
     this.attachUI(ui);
 
     if (uiPlaceHolder) {
-      uiPlaceHolder.addEventListener('mousedown', placeholderClickHandler);
-      uiPlaceHolder.addEventListener('touchstart', placeholderClickHandler);
+      uiPlaceHolder.addEventListener('click', placeholderClickHandler);
       this.attachUiPlaceHolder(uiPlaceHolder)
     }
   }
