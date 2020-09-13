@@ -68,13 +68,16 @@ export class DragDropBlocks extends Module {
         evt.target.classList.contains('ql-togglelist-placeholder') &&
         evt.target.parentNode.tagName === 'LI'
       ) {
+        const allowDragIntoToggle = typeof this.options.allowDragIntoToggle === 'function'
+          ? this.options.allowDragIntoToggle(this.draggingRoot)
+          : true
         this.resetDraggingHelpLine()
         const selection = document.getSelection();
         selection.removeAllRanges()
         this.dragOverPlaceholder = evt.target
         if (
-          this.draggingRoot instanceof Block ||
-          this.isInlineRoot(this.draggingRoot)
+          (this.draggingRoot instanceof Block || this.isInlineRoot(this.draggingRoot)) &&
+          allowDragIntoToggle
         ) {
           if (
             !this.dragOverPlaceholder.classList.contains('allowed-active') &&
