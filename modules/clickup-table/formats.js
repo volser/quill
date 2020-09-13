@@ -757,7 +757,7 @@ class ListItem extends Block {
     let uiPlaceHolder  = null
     if (this.isToggleListItem()) {
       uiPlaceHolder = domNode.ownerDocument.createElement('span')
-      uiPlaceHolder.innerText = 'Empty. Click or drag text/images inside'
+      uiPlaceHolder.innerText = ListItem.DEFAULT_TOGGLE_PLACEHOLDER
     }
 
     const placeholderClickHandler = e => {
@@ -1032,6 +1032,7 @@ class ListItem extends Block {
 }
 ListItem.blotName = 'list';
 ListItem.tagName = 'LI';
+ListItem.DEFAULT_TOGGLE_PLACEHOLDER = 'Empty. Click or drag text/images inside'
 
 ListContainer.allowedChildren = [ListItem];
 ListItem.requiredContainer = ListContainer;

@@ -47,6 +47,10 @@ class Table extends Module {
   constructor(quill, options) {
     super(quill, options)
 
+    if (options.togglelistPlaceholder) {
+      ListItem.DEFAULT_TOGGLE_PLACEHOLDER = options.togglelistPlaceholder
+    }
+
     this.quill.on("text-change", range => {
       if (this.rowTool && this.table) {
         let tableRect = this.rowTool.table.getBoundingClientRect()

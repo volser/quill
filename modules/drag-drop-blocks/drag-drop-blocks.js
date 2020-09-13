@@ -433,9 +433,13 @@ export class DragDropBlocks extends Module {
       }
 
       // drop blocks into toggle list placeholder
+      const allowDragIntoToggle = typeof this.options.allowDragIntoToggle === 'function'
+        ? this.options.allowDragIntoToggle(this.draggingRoot)
+        : true
       if (
         !this.isInlineRoot(this.draggingRoot) &&
         this.draggingRoot instanceof Block &&
+        allowDragIntoToggle &&
         this.dragOverPlaceholder
       ) {
         const list = Quill.find(this.dragOverPlaceholder.parentNode, true)
