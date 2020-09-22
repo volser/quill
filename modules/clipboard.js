@@ -523,6 +523,7 @@ function matchIndent(node, delta, scroll) {
   ) {
     return delta;
   }
+
   let indent = -1;
   let parent = node.parentNode;
   while (parent != null) {
@@ -543,24 +544,18 @@ function matchIndent(node, delta, scroll) {
 
 // clickup: modify the matcher of list
 function matchList(node, delta) {
-  const firstListItem = node.children[0]
-  let list = firstListItem.getAttribute('data-list')
-
-  if (!list) {
-    list = node.tagName === 'OL' ? 'ordered' : 'bullet';
-  }
-
-  const formatted = applyFormat(delta, 'list', list);
-  return formatted.reduce((newDelta, op) => {
+  const list = node.tagName === 'OL' ? 'ordered' : 'bullet';
+  
+  return delta.reduce((newDelta, op) => {
     if (op.attributes && op.attributes['list']) {
       newDelta.insert(
         op.insert,
         Object.assign(
           {},
           _omit(op.attributes, ['list-container']),
-          {
-            list: { list },
-          }
+          op.attributes['list']['list']
+            ? {}
+            : { list: { list } }
         ),
       );
     } else {
