@@ -358,7 +358,7 @@ export class DragDropBlocks extends Module {
     let anchorOffsetTop = 0
     if (this.options.anchorOffsetTop) {
       if (
-        typeof this.options.anchorOffsetLeft === 'function'
+        typeof this.options.anchorOffsetTop === 'function'
       ) {
         anchorOffsetTop = this.options.anchorOffsetTop(blot, node)
       } else if (
@@ -372,7 +372,7 @@ export class DragDropBlocks extends Module {
       anchorOffsetLeft = 0
       console.error(`DragDropBlocks module: anchorOffsetLeft can only be a number or function!`)
     }
-    if (typeof anchorOffsetLeft !== 'number') {
+    if (typeof anchorOffsetTop !== 'number') {
       anchorOffsetTop = 0
       console.error(`DragDropBlocks module: anchorOffsetTop can only be a number or function!`)
     }
