@@ -26,7 +26,6 @@ import { getEventComposedPath } from '../clickup-table-control/utils'
 import TableColumnTool from '../clickup-table-control/clickup-table-column-tool'
 import TableRowTool from '../clickup-table-control/clickup-table-row-tool'
 import TableTableTool from '../clickup-table-control/clickup-table-table-tool'
-import { textSpanIntersectsWith } from 'typescript';
 
 class Table extends Module {
   static register() {
