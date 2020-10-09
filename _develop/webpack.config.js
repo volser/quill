@@ -151,12 +151,23 @@ const baseConfig = {
 module.exports = env => {
   if (env && env.minimize) {
     const { devServer, ...prodConfig } = baseConfig;
-    return {
-      ...prodConfig,
-      mode: 'production',
-      entry: { 'quill.min.js': './quill.js' },
-      devtool: 'source-map',
-    };
+    return [
+      {
+        ...prodConfig,
+        mode: 'production',
+        entry: { 'quill.min.js': './quill.js' },
+        devtool: 'source-map',
+      },
+      {
+        ...prodConfig,
+        mode: 'production',
+        entry: { 'quill.js': './quill.js' },
+        devtool: 'source-map',
+        optimization: {
+          minimize: false,
+        },
+      },
+    ];
   }
   if (env && env.coverage) {
     baseConfig.module.rules[0].use[0].options.plugins = ['istanbul'];
