@@ -151,6 +151,7 @@ const baseConfig = {
 module.exports = env => {
   if (env && env.minimize) {
     const { devServer, ...prodConfig } = baseConfig;
+    delete prodConfig.entry['unit.js'];
     return [
       {
         ...prodConfig,
@@ -161,7 +162,6 @@ module.exports = env => {
       {
         ...prodConfig,
         mode: 'production',
-        entry: { 'quill.js': './quill.js' },
         devtool: 'source-map',
         optimization: {
           minimize: false,
