@@ -322,6 +322,8 @@ class TableCol extends Block {
   format(name, value) {
     if (COL_ATTRIBUTES.indexOf(name) > -1) {
       this.domNode.setAttribute(`${name}`, value || COL_DEFAULT[name])
+    } else {
+      super.format(name, value)
     }
   }
 
