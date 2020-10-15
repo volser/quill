@@ -867,6 +867,29 @@ class ListItem extends Block {
     }
   }
 
+  getListItemChildren() {
+    const children = []
+    const curFormat = this.formats();
+    const curIndent = curFormat.indent || 0
+    let next = this.next
+    let nextFormat = next && next.formats()
+    let nextIndent = nextFormat && nextFormat.indent || 0
+    while (
+      next &&
+      next.statics.blotName === ListItem.blotName
+    ) {
+      if (nextIndent - curIndent > 0) {
+        children.push(next)
+        next = next.next
+        nextFormat = next && next.formats()
+        nextIndent = nextFormat && nextFormat.indent || 0
+      } else {
+        next = null
+      }
+    }
+    return children
+  }
+
   isToggleListItem() {
     const formats = this.formats()
     return formats && formats.list && formats.list.list === 'toggled'

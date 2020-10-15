@@ -31,6 +31,7 @@ export class DragDropBlocks extends Module {
     this.draggingHelpLine = this.quill.addContainer('cu-dragging-help-line')
     // for togglelist placeholder
     this.dragOverPlaceholder = null
+    this.draggingBlots = [] // Only existed when user is dragging listItem or multiple blocks(have highlighted content)
 
     this.quill.root.addEventListener('keydown', evt => {
       this.hideDraggableAnchor()
@@ -53,6 +54,16 @@ export class DragDropBlocks extends Module {
       if (curRoot && this.draggingRoot !== curRoot) {
         this.hideDraggableAnchor()
         this.draggingRoot = curRoot
+        if (
+          curRoot &&
+          typeof curRoot.formats === 'function' &&
+          curRoot.formats() &&
+          curRoot.formats().list
+        ) {
+          const childrenItems = curRoot.getListItemChildren()
+          this.draggingBlots = childrenItems.length > 0 ? [curRoot].concat(childrenItems) : []
+        }
+        // if dragging a listitem
         this.showDraggableAnchor(curBlot, target)
       } else if (!curRoot) {
         this.hideDraggableAnchor()
@@ -77,6 +88,7 @@ export class DragDropBlocks extends Module {
         selection.removeAllRanges()
         this.dragOverPlaceholder = evt.target
         if (
+          this.draggingBlots.length === 0 &&
           (this.draggingRoot instanceof Block || this.isInlineRoot(this.draggingRoot)) &&
           allowDragIntoToggle
         ) {
@@ -102,7 +114,10 @@ export class DragDropBlocks extends Module {
       }
 
       // dragging inline blot
-      if (this.isInlineRoot(this.draggingRoot)) {
+      if (
+        this.draggingBlots.length === 0 &&
+        this.isInlineRoot(this.draggingRoot)
+      ) {
         const native = this.getNativeSelection(evt);
         if (!native) {
           return;
@@ -123,7 +138,10 @@ export class DragDropBlocks extends Module {
       if (!dragOverRoot) return
 
       this.dragOverRoot = dragOverRoot
-      if (this.dragOverRoot && this.draggingRoot === this.dragOverRoot) {
+      if (
+        (this.dragOverRoot && this.draggingRoot === this.dragOverRoot) ||
+        (this.draggingBlots.length > 0 && this.draggingBlots.indexOf(this.dragOverRoot) > 0)
+      ) {
         this.resetDraggingHelpLine()
         this.dragOverRoot = null
       } else if (this.dragOverRoot && this.draggingRoot !== this.dragOverRoot) {
@@ -168,7 +186,7 @@ export class DragDropBlocks extends Module {
       if (!this.dragging || !this.isInlineRoot(this.draggingRoot)) return
 
       const native = this.getNativeSelection(evt)
-      if (!native) {
+      if (!native || this.draggingBlots.length > 0) {
         return;
       }
 
@@ -417,6 +435,18 @@ export class DragDropBlocks extends Module {
         draggingDom.classList.add('ql-dragging-block-active')
       }
 
+      if (this.draggingBlots.length > 0) {
+        this.draggingBlots.forEach(blot => {
+          const node = blot && blot.domNode
+          if (
+            node &&
+            node.classList
+          ) {
+            node.classList.add('ql-dragging-block-active')
+          }
+        })
+      }
+
       if (
         this.options.dragStartCallback &&
         typeof this.options.dragStartCallback === 'function'
@@ -443,7 +473,8 @@ export class DragDropBlocks extends Module {
         !this.isInlineRoot(this.draggingRoot) &&
         this.draggingRoot instanceof Block &&
         allowDragIntoToggle &&
-        this.dragOverPlaceholder
+        this.dragOverPlaceholder &&
+        this.draggingBlots.length === 0
       ) {
         const list = Quill.find(this.dragOverPlaceholder.parentNode, true)
         const listIndex = this.quill.getIndex(list)
@@ -492,7 +523,8 @@ export class DragDropBlocks extends Module {
         this.quill.updateContents(diff, Quill.sources.USER);
       } else if (
         !this.isInlineRoot(this.draggingRoot) &&
-        this.draggingRoot !== this.dropRefRoot
+        this.draggingRoot !== this.dropRefRoot &&
+        this.draggingBlots.length === 0
       ) {
         let targetIndex
         let targetLength
@@ -559,6 +591,82 @@ export class DragDropBlocks extends Module {
           }
         }
         this.quill.updateContents(updates, Quill.sources.USER);
+      } else if (
+        !this.isInlineRoot(this.draggingRoot) &&
+        this.draggingBlots.length > 0 &&
+        this.draggingBlots.indexOf(this.dragOverRoot) < 0 &&
+        this.draggingRoot !== this.dropRefRoot
+      ) {
+        const draggingBlotsIndex = this.quill.getIndex(this.draggingBlots[0])
+        const draggingBlotsLength = this.draggingBlots.reduce((len, blot) => {
+          len = len + blot.length()
+          return len
+        }, 0)
+        let targetIndex
+        let targetLength
+        let updates = new Delta()
+        let movedContent = new Delta()
+
+        if (this.dropRefRoot) { // Put draggingContent in front of the target content
+          targetIndex = this.quill.getIndex(this.dropRefRoot);
+          targetLength = this.dropRefRoot.length();
+
+          if (draggingRootIndex < targetIndex) {
+            movedContent = this.quill.getContents(draggingBlotsIndex, draggingBlotsLength)
+
+            const deletes = new Delta()
+              .retain(draggingBlotsIndex)
+              .delete(draggingBlotsLength)
+
+            const inserts = new Delta()
+              .retain(targetIndex - draggingBlotsLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          } else {
+            movedContent = this.quill.getContents(targetIndex, draggingBlotsIndex - targetIndex);
+
+            const deletes = new Delta()
+              .retain(targetIndex)
+              .delete(draggingBlotsIndex - targetIndex)
+
+            const inserts = new Delta()
+              .retain(targetIndex + draggingBlotsLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          }
+        } else if (this.dragOverRoot) { // Put draggingContnet behind the target content
+          targetIndex = this.quill.getIndex(this.dragOverRoot)
+          targetLength = this.dragOverRoot.length()
+          
+          if (draggingRootIndex < targetIndex) {
+            movedContent = this.quill.getContents(draggingBlotsIndex, draggingBlotsLength)
+
+            const deletes = new Delta()
+              .retain(draggingBlotsIndex)
+              .delete(draggingBlotsLength)
+
+            const inserts = new Delta()
+              .retain(targetIndex + targetLength - draggingBlotsLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          } else {
+            movedContent = this.quill.getContents(targetIndex + targetLength, draggingBlotsIndex - targetIndex - targetLength);
+
+            const deletes = new Delta()
+              .retain(targetIndex + targetLength)
+              .delete(draggingBlotsIndex - targetIndex - targetLength)
+
+            const inserts = new Delta()
+              .retain(targetIndex + targetLength + draggingBlotsLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          }
+        }
+        this.quill.updateContents(updates, Quill.sources.USER);
       }
 
       const draggingDom = this.draggingRoot && this.draggingRoot.domNode
@@ -567,6 +675,18 @@ export class DragDropBlocks extends Module {
         draggingDom.classList
       ) {
         draggingDom.classList.remove('ql-dragging-block-active')
+      }
+
+      if (this.draggingBlots.length > 0) {
+        this.draggingBlots.forEach(blot => {
+          const node = blot && blot.domNode
+          if (
+            node &&
+            node.classList
+          ) {
+            node.classList.remove('ql-dragging-block-active')
+          }
+        })
       }
 
       this.hideDraggableAnchor()
