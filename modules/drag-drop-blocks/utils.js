@@ -27,6 +27,12 @@ export const getDraggableRootBlot = (curBlot, node) => {
       return curBlot
     case 'block':
       return curBlot
+    case 'code':
+      return curBlot.parent.parent
+    case 'code-block':
+      return curBlot.parent
+    case 'code-block-container':
+      return curBlot
     default:
       return null
   }
@@ -54,6 +60,12 @@ export const getDropableRootBlot = (curBlot, node) => {
     case 'list':
       return curBlot
     case 'block':
+      return curBlot
+    case 'code':
+      return curBlot.parent.parent
+    case 'code-block':
+      return curBlot.parent
+    case 'code-block-container':
       return curBlot
     default:
       return null

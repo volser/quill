@@ -10,6 +10,7 @@ import {
   isInlineRoot,
   css
 } from './utils'
+import { update } from 'lodash';
 
 const ICON_DRAG_ANCHOR = '<svg t="1596683681627" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5150" width="20" height="20"><path d="M362.666667 192m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5151" fill="#b1b1b1"></path><path d="M661.333333 192m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5152" fill="#b1b1b1"></path><path d="M362.666667 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5153" fill="#b1b1b1"></path><path d="M661.333333 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5154" fill="#b1b1b1"></path><path d="M362.666667 832m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5155" fill="#b1b1b1"></path><path d="M661.333333 832m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" p-id="5156" fill="#b1b1b1"></path></svg>'
 const ICON_DRAG_ANCHOR_WIDTH = 20
@@ -432,6 +433,8 @@ export class DragDropBlocks extends Module {
         this.quill.root.classList.remove('ql-dragging-blocks')
       }
 
+      const draggingRootIndex = this.quill.getIndex(this.draggingRoot)
+      const draggingRootLength = this.draggingRoot.length()
       // drop blocks into toggle list placeholder
       const allowDragIntoToggle = typeof this.options.allowDragIntoToggle === 'function'
         ? this.options.allowDragIntoToggle(this.draggingRoot)
@@ -446,9 +449,7 @@ export class DragDropBlocks extends Module {
         const listIndex = this.quill.getIndex(list)
         const listFormats = list.formats()
         const listIndent = listFormats.indent || 0
-        const draggingRootIndex = this.quill.getIndex(this.draggingRoot)
-        const draggingRootLength = this.draggingRoot.length()
-        const insertDelta = this.quill.getContents(draggingRootIndex, this.draggingRoot.length())
+        const insertDelta = this.quill.getContents(draggingRootIndex, draggingRootLength)
 
         let diff
         let format
@@ -493,12 +494,71 @@ export class DragDropBlocks extends Module {
         !this.isInlineRoot(this.draggingRoot) &&
         this.draggingRoot !== this.dropRefRoot
       ) {
-        // change order for blocks
-        if (this.dropRefRoot) {
-          this.dropRefRoot.parent.insertBefore(this.draggingRoot, this.dropRefRoot)
-        } else if (this.dragOverRoot) {
-          this.dragOverRoot.parent.insertBefore(this.draggingRoot, null)
+        let targetIndex
+        let targetLength
+        let updates = new Delta()
+        let movedContent = new Delta()
+
+        if (this.dropRefRoot) { // Put draggingContent in front of the target content
+          targetIndex = this.quill.getIndex(this.dropRefRoot);
+          targetLength = this.dropRefRoot.length();
+
+          if (draggingRootIndex < targetIndex) {
+            movedContent = this.quill.getContents(draggingRootIndex, draggingRootLength)
+
+            const deletes = new Delta()
+              .retain(draggingRootIndex)
+              .delete(draggingRootLength)
+
+            const inserts = new Delta()
+              .retain(targetIndex - draggingRootLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          } else {
+            movedContent = this.quill.getContents(targetIndex, draggingRootIndex - targetIndex);
+
+            const deletes = new Delta()
+              .retain(targetIndex)
+              .delete(draggingRootIndex - targetIndex)
+
+            const inserts = new Delta()
+              .retain(targetIndex + draggingRootLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          }
+        } else if (this.dragOverRoot) { // Put draggingContnet behind the target content
+          targetIndex = this.quill.getIndex(this.dragOverRoot)
+          targetLength = this.dragOverRoot.length()
+          
+          if (draggingRootIndex < targetIndex) {
+            movedContent = this.quill.getContents(draggingRootIndex, draggingRootLength)
+
+            const deletes = new Delta()
+              .retain(draggingRootIndex)
+              .delete(draggingRootLength)
+
+            const inserts = new Delta()
+              .retain(targetIndex + targetLength - draggingRootLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          } else {
+            movedContent = this.quill.getContents(targetIndex + targetLength, draggingRootIndex - targetIndex - targetLength);
+
+            const deletes = new Delta()
+              .retain(targetIndex + targetLength)
+              .delete(draggingRootIndex - targetIndex - targetLength)
+
+            const inserts = new Delta()
+              .retain(targetIndex + targetLength + draggingRootLength)
+              .concat(movedContent)
+
+            updates = deletes.compose(inserts)
+          }
         }
+        this.quill.updateContents(updates, Quill.sources.USER);
       }
 
       const draggingDom = this.draggingRoot && this.draggingRoot.domNode
