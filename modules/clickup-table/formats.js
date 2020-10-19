@@ -771,7 +771,12 @@ class ListItem extends Block {
 
       if (quill && storageModule) {
         const cachedToggleListItems = storageModule.getItem(THE_KEY_FOR_EXPANDED_TOGGLE_LIST)
-        if (cachedToggleListItems.find(item => item.id === format['toggle-id'])) {
+        if (
+          cachedToggleListItems &&
+          cachedToggleListItems.length &&
+          cachedToggleListItems.length > 0 &&
+          cachedToggleListItems.find(item => item.id === format['toggle-id'])
+        ) {
           this.expandItem()
         }
       }
