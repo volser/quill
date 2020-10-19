@@ -39,6 +39,7 @@ import Syntax from './modules/syntax';
 import Table from './modules/clickup-table/table';
 import Toolbar from './modules/toolbar';
 import DragDropBlocks from './modules/drag-drop-blocks/drag-drop-blocks';
+import Storage from './modules/clickup-storage/storage';
 
 import Icons from './ui/icons';
 import Picker from './ui/picker';
@@ -105,6 +106,7 @@ Quill.register(
     'modules/table': Table,
     'modules/toolbar': Toolbar,
     'modules/dragDropBlocks': DragDropBlocks,
+    'modules/storage': Storage,
 
     'themes/bubble': BubbleTheme,
     'themes/snow': SnowTheme,

@@ -14,6 +14,13 @@ const SHORTKEY = /Mac/i.test(navigator.platform) ? 'metaKey' : 'ctrlKey';
 // clickup: define tableCellAllowedBlotName
 const tableCellAllowedBlotName = ['table-cell-line', 'list', 'list-container']
 
+function toggleListId() {
+  const id = Math.random()
+    .toString(36)
+    .slice(2, 8)
+  return `list-${id}`
+}
+
 class Keyboard extends Module {
   static match(evt, binding) {
     if (
@@ -448,13 +455,24 @@ Keyboard.DEFAULTS = {
               range.index,
               line.length() - offset - 1
             )
+
             const delta = new Delta()
               .retain(range.index)
               .delete(line.length() - offset - 1)
               .retain(1)
               .retain(skipLength)
               .concat(subDelta)
-              .insert('\n', lineFormats)
+              .insert('\n', Object.assign(
+                {},
+                lineFormats,
+                {
+                  list: Object.assign(
+                    {},
+                    lineFormats.list,
+                    { 'toggle-id': toggleListId() }
+                  )
+                }
+              ))
             this.quill.updateContents(delta, Quill.sources.USER);
             this.quill.setSelection(range.index + skipLength + 1, Quill.sources.SILENT);
             this.quill.scrollIntoView();

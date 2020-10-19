@@ -1,6 +1,7 @@
 import Quill from "../../core/quill"
 import Delta from "quill-delta"
 import { css } from "../clickup-table-control/utils"
+import { THE_KEY_FOR_EXPANDED_TOGGLE_LIST } from '../clickup-storage/storage'
 
 const Block = Quill.import("blots/block")
 const Container = Quill.import("blots/container")
@@ -735,6 +736,10 @@ class ListItem extends Block {
       .forEach(key => {
         if (value[key]) node.setAttribute(`data-${key}`, value[key])
       })
+    
+    if (value.list === 'toggled') {
+      node.setAttribute('data-toggle-id', value['toggle-id'] ? value['toggle-id'] : toggleListId())
+    }
 
     return node;
   }
@@ -743,7 +748,7 @@ class ListItem extends Block {
     const formats = {}
 
     return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
-      .concat(['list'])
+      .concat(['list', 'toggle-id'])
       .reduce((formats, attribute) => {
         if (domNode.hasAttribute(`data-${attribute}`)) {
           formats[attribute] = domNode.getAttribute(`data-${attribute}`) || undefined
@@ -756,15 +761,24 @@ class ListItem extends Block {
     super(scroll, domNode);
     const ui = domNode.ownerDocument.createElement('span');
     const format = this.statics.formats(domNode, scroll);
+    const quill = Quill.find(scroll.domNode.parentNode)
+    const storageModule = quill.getModule('storage')
     let uiPlaceHolder  = null
+
     if (this.isToggleListItem()) {
       uiPlaceHolder = domNode.ownerDocument.createElement('span')
       uiPlaceHolder.innerText = ListItem.DEFAULT_TOGGLE_PLACEHOLDER
+
+      if (quill && storageModule) {
+        const cachedToggleListItems = storageModule.getItem(THE_KEY_FOR_EXPANDED_TOGGLE_LIST)
+        if (cachedToggleListItems.find(item => item.id === format['toggle-id'])) {
+          this.expandItem()
+        }
+      }
     }
 
     const placeholderClickHandler = e => {
       if (!scroll.isEnabled()) return;
-      const quill = Quill.find(scroll.domNode.parentNode)
       const index = quill.getIndex(this)
       const listFormats = this.formats()
       const newLineIndent = listFormats.indent ? (listFormats.indent + 1 ): 1
@@ -798,11 +812,16 @@ class ListItem extends Block {
         const isExpanded = this.isThisItemExpanded()
         if (isExpanded) {
           this.collapseItem()
+          if (storageModule) {
+            storageModule.removeCollapsedToggleList(format['toggle-id'])
+          }
         } else {
           this.expandItem()
+          if (storageModule) {
+            storageModule.addExpandedToggleList(format['toggle-id'])
+          }
         }
         // update height of table row tool if this list was in a table
-        const quill = Quill.find(scroll.domNode.parentNode)
         const editorElem = scroll.domNode
         if (quill && editorElem) {
           const tableModule = quill.getModule('table')
@@ -1097,6 +1116,13 @@ function cellId() {
   return `cell-${id}`
 }
 
+function toggleListId() {
+  const id = Math.random()
+    .toString(36)
+    .slice(2, 8)
+  return `list-${id}`
+}
+
 export {
   // blots
   TableCol,
@@ -1114,6 +1140,7 @@ export {
   // identity getters
   rowId,
   cellId,
+  toggleListId,
 
   // attributes
   CELL_IDENTITY_KEYS,
