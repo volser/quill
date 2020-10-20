@@ -89,6 +89,16 @@ class TableCellLine extends Block {
         colspan,
         rowspan
       })
+    } else if (
+      this.parent instanceof this.statics.requiredContainer &&
+      this.parent.formats().cell !== cellId
+    ) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        cell: cellId,
+        row: rowId,
+        colspan,
+        rowspan
+      })
     }
     super.optimize(context)
   }
@@ -214,6 +224,13 @@ class TableCell extends Container {
 
     if (this.statics.requiredContainer &&
       !(this.parent instanceof this.statics.requiredContainer)) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        row: rowId
+      })
+    } else if (
+      this.parent instanceof this.statics.requiredContainer &&
+      this.parent.formats().row !== rowId
+    ) {
       this.wrap(this.statics.requiredContainer.blotName, {
         row: rowId
       })
@@ -517,53 +534,81 @@ class TableContainer extends Container {
   }
 
   insertColumn(index, isRight = true) {
+    const quill = Quill.find(this.scroll.domNode.parentNode)
     const [body] = this.descendants(TableBody)
     const [colGroup] = this.descendants(TableColGroup)
-    if (body == null || body.children.head == null ||
-      colGroup == null) return;
-    // insert tableCol at first
-    const tableCol = this.scroll.create(TableCol.blotName, true)
-    const thisCol = colGroup.children.at(index)
-    const refCol = isRight ? thisCol.next : thisCol
-    if (refCol) {
-      colGroup.insertBefore(tableCol, refCol)
-    } else {
-      colGroup.appendChild(tableCol)
+    if (
+      body == null ||
+      body.children.head == null ||
+      colGroup == null
+    ) {
+      return;
     }
 
+    // insert tableCol at first
+    const thisCol = colGroup.children.at(index)
+    const thisColIndex = quill.getIndex(thisCol)
+    const thisColLength = thisCol.length()
+    const insertNewColDelta = new Delta()
+    if (isRight) {
+      insertNewColDelta.retain(thisColIndex + thisColLength)
+        .insert('\n', { [TableCol.blotName]: true })
+    } else {
+      insertNewColDelta.retain(thisColIndex)
+      .insert('\n', { [TableCol.blotName]: true })
+    }
 
-    body.children.forEach(tableRow => {
-      const { row } = tableRow.formats()
-      const cell = cellId()
-      const thisCell = tableRow.children.at(index)
-      const ref = isRight ? thisCell.next : thisCell
+    let insertNewCellsDelta = new Delta()
+      .retain(quill.getLength())
+      .compose(insertNewColDelta)
 
-      const tableCell = this.scroll.create(
-        TableCell.blotName,
-        Object.assign({}, CELL_DEFAULT, {
-          row,
-          cell
-        })
-      )
-      const cellLine = this.scroll.create(
-        TableCellLine.blotName,
-        Object.assign({}, CELL_DEFAULT, {
-          row,
-          cell
-        })
-      )
-      const empty = this.scroll.create(Break.blotName)
-      cellLine.appendChild(empty)
-      tableCell.appendChild(cellLine)
+    let rowIndex = 0
+    body.children.forEach(row => {
+      const rowFormats = row.formats()
+      const curCell = row.children.at(index);
+      const curCellIndex = quill.getIndex(curCell)
+      const curCellLength = curCell.length()
+      const insertDelta = new Delta()
 
-      if (ref) {
-        tableRow.insertBefore(tableCell, ref)
+      if (isRight) {
+        insertDelta
+          .retain(curCellIndex + curCellLength + rowIndex + 1)
+          .insert(
+            '\n',
+            {
+              [TableCellLine.blotName]: Object.assign(
+                {},
+                CELL_DEFAULT,
+                {
+                  row: rowFormats.row,
+                  cell: cellId()
+                }
+              )
+            }
+          )
       } else {
-        tableRow.appendChild(tableCell)
+        insertDelta
+          .retain(curCellIndex + rowIndex + 1)
+          .insert(
+            '\n',
+            {
+              [TableCellLine.blotName]: Object.assign(
+                {},
+                CELL_DEFAULT,
+                {
+                  row: rowFormats.row,
+                  cell: cellId()
+                }
+              )
+            }
+          )
       }
+
+      insertNewCellsDelta = insertNewCellsDelta.compose(insertDelta)
+      rowIndex += 1
     })
 
-    this.updateTableWidth()
+    quill.updateContents(insertNewCellsDelta, Quill.sources.USER);
   }
 
   deleteColumn(index) {

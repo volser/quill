@@ -69,7 +69,7 @@ window.onload = () => {
 
   window.quill = quill
   // test parse old table delta to new
-  quill.setContents(tableDeltaParser(testDelta3))
+  // quill.setContents(tableDeltaParser(testDelta3))
 
   const tableModule = quill.getModule('table')
 
