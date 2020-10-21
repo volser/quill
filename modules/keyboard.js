@@ -482,6 +482,73 @@ Keyboard.DEFAULTS = {
         }
       },
     },
+
+    'togglelist shift enter': {
+      key: 'Enter',
+      shiftKey: true,
+      collapsed: true,
+      format: ['list'],
+      handler(range) {
+        const [line, offset] = this.quill.getLine(range.index);
+        const lineFormats = line.formats()
+        if (line.isToggleListItem()) {
+          if (line.isThisItemExpanded()) {
+            const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
+            const newLineFormats = {
+              ...lineFormats,
+              indent: newLineIndent,
+              list: Object.assign(
+                {},
+                lineFormats.list,
+                { list: 'none' }
+              )
+            }
+            const delta = new Delta()
+              .retain(range.index)
+              .delete(range.length)
+              .insert('\n', lineFormats)
+              .retain(1, newLineFormats);
+            this.quill.updateContents(delta, Quill.sources.USER);
+            this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+            this.quill.focus();
+          } else {
+            const childItems = line.getToggleListItemChildren()
+            const skipLength = childItems.reduce((len, childItem) => {
+              len = len + childItem.length()
+              return len
+            }, 0)
+            const subDelta = this.quill.getContents(
+              range.index,
+              line.length() - offset - 1
+            )
+
+            const delta = new Delta()
+              .retain(range.index)
+              .delete(line.length() - offset - 1)
+              .retain(1)
+              .retain(skipLength)
+              .concat(subDelta)
+              .insert('\n', Object.assign(
+                {},
+                lineFormats,
+                {
+                  list: Object.assign(
+                    {},
+                    lineFormats.list,
+                    { 'toggle-id': toggleListId() }
+                  )
+                }
+              ))
+            this.quill.updateContents(delta, Quill.sources.USER);
+            this.quill.setSelection(range.index + skipLength + 1, Quill.sources.SILENT);
+            this.quill.scrollIntoView();
+          }
+        } else {
+          return true
+        }
+      },
+    },
+
     'header enter': {
       key: 'Enter',
       collapsed: true,
