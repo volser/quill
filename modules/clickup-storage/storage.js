@@ -2,6 +2,8 @@ import Quill from '../../core/quill';
 import Module from '../../core/module';
 import { filter } from 'lodash';
 
+import { ListItem } from '../clickup-table/formats'
+
 export const THE_KEY_FOR_EXPANDED_TOGGLE_LIST = 'Quill_Expanded_Toggle_Lists'
 const STORED_KEYS = [
   THE_KEY_FOR_EXPANDED_TOGGLE_LIST
@@ -48,6 +50,8 @@ export default class QuillStorage extends Module {
     } else {
       this.storageRef = fakeStorage
     }
+
+    this.listenExpandToggleList()
   }
 
   getItem(key) {
@@ -71,5 +75,45 @@ export default class QuillStorage extends Module {
     let lists = this.getItem(THE_KEY_FOR_EXPANDED_TOGGLE_LIST) || []
     lists = filter(lists, item => item.id !== listItemId)
     this.setItem(THE_KEY_FOR_EXPANDED_TOGGLE_LIST, lists)
+  }
+
+  listenExpandToggleList() {
+    this.quill.on(Quill.events.SCROLL_OPTIMIZE, mutations => {
+      const flag = mutations.some(mutation => {
+        if (['OL', 'UL', 'LI'].includes(mutation.target.tagName)) {
+          return true;
+        }
+        return false;
+      });
+
+      if (flag) {
+        this.expandToggleListInStorage();
+      }
+    });
+  }
+
+  expandToggleListInStorage () {
+    const storageModule = quill.getModule('storage')
+    this.quill.scroll.descendants(ListItem).forEach(listItem => {
+      if (storageModule) {
+        const cachedToggleListItems = storageModule.getItem(THE_KEY_FOR_EXPANDED_TOGGLE_LIST)
+        const format = ListItem.formats(listItem.domNode)
+        if (
+          listItem.isToggleListItem() &&
+          cachedToggleListItems &&
+          cachedToggleListItems.length &&
+          cachedToggleListItems.length > 0 &&
+          cachedToggleListItems.some(item => item.id === format['toggle-id']) &&
+          !listItem.isThisItemExpanded()
+        ) {
+          listItem.expandItem()
+        }
+      }
+    });
+    // setTimeout(() => {
+    //   this.columnTool && this.columnTool.updateToolCells()
+    //   this.columnTool && this.columnTool.activeDropdown && this.columnTool.activeDropdown.destroy()
+    //   this.rowTool && this.rowTool.updateToolCells()
+    // }, 0)
   }
 }
