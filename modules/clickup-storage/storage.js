@@ -93,7 +93,7 @@ export default class QuillStorage extends Module {
   }
 
   expandToggleListInStorage () {
-    const storageModule = quill.getModule('storage')
+    const storageModule = this.quill.getModule('storage')
     this.quill.scroll.descendants(ListItem).forEach(listItem => {
       if (storageModule) {
         const cachedToggleListItems = storageModule.getItem(THE_KEY_FOR_EXPANDED_TOGGLE_LIST)
