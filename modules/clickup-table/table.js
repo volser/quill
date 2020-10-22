@@ -319,6 +319,9 @@ class Table extends Module {
   }
 
   balanceTables() {
+    this.quill.scroll.descendants(TableContainer).forEach(table => {
+      table.balanceCells();
+    });
     setTimeout(() => {
       this.columnTool && this.columnTool.updateToolCells()
       this.columnTool && this.columnTool.activeDropdown && this.columnTool.activeDropdown.destroy()
