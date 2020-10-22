@@ -61,11 +61,11 @@ class Table extends Module {
       }
     })
 
-    // hide table tools when the cursor go out of the table
     this.quill.on('selection-change', range => {
       if (!range) return true
       const [curLine] = this.quill.getLine(range.index)
       const lineFomrats = curLine.formats()
+      // hide table tools when the cursor go out of the table
       if (
         !(
           lineFomrats &&
@@ -76,6 +76,42 @@ class Table extends Module {
         )
       ) {
         this.hideTableTools()
+      }
+
+      // show table tools when the cursor go into the table
+      if (
+        lineFomrats &&
+        (
+          lineFomrats[TableCellLine.blotName] ||
+          lineFomrats.list && lineFomrats.list.row && lineFomrats.list.cell
+        ) &&
+        this.columnTool &&
+        this.rowTool
+      ) {
+        let curCell
+        if (
+          curLine.parent &&
+          curLine.parent instanceof TableCell
+        ) {
+          curCell = curLine.parent
+        } else if (
+          curLine.parent &&
+          curLine.parent.parent instanceof TableCell
+        ) {
+          curCell = curLine.parent.parent
+        }
+
+        if (!curCell) return;
+        // show table tools' buttons
+        const curCellIndex = curCell.cellOffset()
+        const curRowIndex = curCell.rowOffset()
+        const colToolCells = this.columnTool.domNode.querySelectorAll('.cu-col-tool-cell')
+        const rowToolCells = this.rowTool.domNode.querySelectorAll('.cu-row-tool-cell')
+
+        colToolCells.forEach(cell => cell.classList.remove('cell-focused'))
+        colToolCells[curCellIndex].classList.add('cell-focused')
+        rowToolCells.forEach(cell => cell.classList.remove('row-focused'))
+        rowToolCells[curRowIndex].classList.add('row-focused')
       }
     })
 
@@ -118,6 +154,7 @@ class Table extends Module {
   }
 
   showTableTools (table, quill, options) {
+    this.hideTableTools()
     const dragDropBlocks = this.quill.getModule('dragDropBlocks')
     dragDropBlocks && dragDropBlocks.hideDraggableAnchor()
 
@@ -125,6 +162,43 @@ class Table extends Module {
     this.columnTool = new TableColumnTool(table, quill, options)
     this.rowTool = new TableRowTool(table, quill, options)
     this.tableTool = new TableTableTool(table, quill, options)
+
+    const range = this.quill.getSelection()
+    if (range) {
+      const [curLine] = this.quill.getLine(range.index)
+      const lineFomrats = curLine.formats()
+      if (
+        lineFomrats &&
+        (
+          lineFomrats[TableCellLine.blotName] ||
+          lineFomrats.list && lineFomrats.list.row && lineFomrats.list.cell
+        ) &&
+        this.columnTool &&
+        this.rowTool
+      ) {
+        let curCell
+        if (
+          curLine.parent &&
+          curLine.parent instanceof TableCell
+        ) {
+          curCell = curLine.parent
+        } else if (
+          curLine.parent &&
+          curLine.parent.parent instanceof TableCell
+        ) {
+          curCell = curLine.parent.parent
+        }
+
+        if (!curCell) return;
+        // show corresponding table tools' buttons
+        const curCellIndex = curCell.cellOffset()
+        const curRowIndex = curCell.rowOffset()
+        const colToolCells = this.columnTool.domNode.querySelectorAll('.cu-col-tool-cell')
+        const rowToolCells = this.rowTool.domNode.querySelectorAll('.cu-row-tool-cell')
+        colToolCells[curCellIndex].classList.add('cell-focused')
+        rowToolCells[curRowIndex].classList.add('row-focused')
+      }
+    }
   }
 
   hideTableTools () {

@@ -791,7 +791,6 @@ class ListItem extends Block {
 
   static formats(domNode) {
     const formats = {}
-
     return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
       .concat(['list', 'toggle-id'])
       .reduce((formats, attribute) => {
@@ -807,24 +806,11 @@ class ListItem extends Block {
     const ui = domNode.ownerDocument.createElement('span');
     const format = this.statics.formats(domNode, scroll);
     const quill = Quill.find(scroll.domNode.parentNode)
-    const storageModule = quill.getModule('storage')
     let uiPlaceHolder  = null
 
     if (this.isToggleListItem()) {
       uiPlaceHolder = domNode.ownerDocument.createElement('span')
       uiPlaceHolder.innerText = ListItem.DEFAULT_TOGGLE_PLACEHOLDER
-
-      if (quill && storageModule) {
-        const cachedToggleListItems = storageModule.getItem(THE_KEY_FOR_EXPANDED_TOGGLE_LIST)
-        if (
-          cachedToggleListItems &&
-          cachedToggleListItems.length &&
-          cachedToggleListItems.length > 0 &&
-          cachedToggleListItems.find(item => item.id === format['toggle-id'])
-        ) {
-          this.expandItem()
-        }
-      }
     }
 
     const placeholderClickHandler = e => {
@@ -849,6 +835,7 @@ class ListItem extends Block {
       quill.setSelection(index + this.length(), Quill.sources.SILENT);
     }
 
+    const storageModule = quill.getModule('storage')
     const listEventHandler = e => {
       if (!scroll.isEnabled()) return;
       const format = this.statics.formats(domNode, scroll);
@@ -902,17 +889,29 @@ class ListItem extends Block {
   }
 
   format(name, value) {
-    const { row, cell, rowspan, colspan, list } = ListItem.formats(this.domNode)
+    const curFormats = ListItem.formats(this.domNode)
+    const { row, cell, rowspan, colspan } = curFormats
+
     if (name === ListItem.blotName) {
       if (value) {
         if (typeof value === 'object') {
-          value = value.list
+          super.format(name, {
+            list: value.list,
+            row,
+            cell,
+            rowspan,
+            colspan,
+            'toggle-id': value['toggle-id']
+          })
+        } else {
+          super.format(name, {
+            list: value,
+            row,
+            cell,
+            rowspan,
+            colspan
+          })
         }
-
-        super.format(name, {
-          list: value,
-          row, cell, rowspan, colspan
-        })
       } else {
         if (row && cell) {
           this.replaceWith(TableCellLine.blotName, {
