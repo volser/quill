@@ -259,12 +259,16 @@ TableCell.tagName = "TD"
 class TableRow extends Container {
   checkMerge() {
     if (super.checkMerge() && this.next.children.head != null) {
-      const thisHead = this.children.head.formats()
-      const thisTail = this.children.tail.formats()
-      const nextHead = this.next.children.head.formats()
-      const nextTail = this.next.children.tail.formats()
+      const thisHead = this.children.head instanceof TableCell && this.children.head.formats()
+      const thisTail = this.children.tail instanceof TableCell && this.children.tail.formats()
+      const nextHead = this.next.children.head instanceof TableCell && this.next.children.head.formats()
+      const nextTail = this.next.children.tail instanceof TableCell && this.next.children.tail.formats()
 
       return (
+        thisHead &&
+        thisTail &&
+        nextHead &&
+        nextTail &&
         thisHead.row === thisTail.row &&
         thisHead.row === nextHead.row &&
         thisHead.row === nextTail.row
@@ -340,7 +344,10 @@ class TableCol extends Block {
   format(name, value) {
     if (COL_ATTRIBUTES.indexOf(name) > -1) {
       this.domNode.setAttribute(`${name}`, value || COL_DEFAULT[name])
-    } else if (name === TableCol.blotName) {
+    } else if (
+      name === TableCol.blotName ||
+      name === TableCellLine.blotName
+    ) {
       super.format(name, value)
     }
   }
