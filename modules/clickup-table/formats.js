@@ -380,34 +380,6 @@ class TableContainer extends Container {
       return false
     }
 
-    this.descendants(TableCell).forEach(parentCell => {
-      const parentCellId = parentCell.formats().cell
-      const cellChildren = parentCell.children
-      let hasDifferentCellIdChild = false
-      cellChildren.forEach(child => {
-        const childFormats = child.formats()[child.statics.blotName] || child.formats()
-        if (childFormats.cell !== parentCellId) hasDifferentCellIdChild = true
-      })
-
-      if (hasDifferentCellIdChild) {
-        parentCell.unwrap()
-      }
-    })
-
-    this.descendants(TableRow).forEach(parentRow => {
-      const parentRowId = parentRow.formats().row
-      const rowChildren = parentRow.children
-      let hasDifferentRowIdChild = false
-      rowChildren.forEach(child => {
-        const childFormats = child.formats()[child.statics.blotName] || child.formats()
-        if (childFormats.row !== parentRowId) hasDifferentRowIdChild = true
-      })
-
-      if (hasDifferentRowIdChild) {
-        parentRow.unwrap()
-      }
-    })
-
     setTimeout(() => {
       this.rebuildWholeTable()
       this.updateTableWidth()
