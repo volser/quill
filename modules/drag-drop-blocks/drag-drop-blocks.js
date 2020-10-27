@@ -522,10 +522,11 @@ export class DragDropBlocks extends Module {
         diff = diff.compose(format)
         this.quill.updateContents(diff, Quill.sources.USER);
       } else if (
+        this.dragOverRoot &&
         !this.isInlineRoot(this.draggingRoot) &&
         !this.dragOverPlaceholder &&
-        this.draggingRoot !== this.dropRefRoot &&
-        this.draggingBlots.length === 0
+        this.draggingBlots.length === 0 &&
+        this.draggingRoot !== this.dropRefRoot
       ) {
         const movedContent = this.quill.getContents(draggingRootIndex, draggingRootLength)
         const deletes = new Delta()
@@ -564,6 +565,7 @@ export class DragDropBlocks extends Module {
         }
         this.quill.updateContents(deletes.compose(inserts), Quill.sources.USER);
       } else if (
+        this.dragOverRoot &&
         !this.isInlineRoot(this.draggingRoot) &&
         !this.dragOverPlaceholder &&
         this.draggingBlots.length > 0 &&
