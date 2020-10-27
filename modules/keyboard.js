@@ -420,7 +420,6 @@ Keyboard.DEFAULTS = {
     // clickup: togglelist enter
     'togglelist enter': {
       key: 'Enter',
-      collapsed: true,
       format: ['list'],
       handler(range) {
         const [line, offset] = this.quill.getLine(range.index);
@@ -486,7 +485,6 @@ Keyboard.DEFAULTS = {
     'togglelist shift enter': {
       key: 'Enter',
       shiftKey: true,
-      collapsed: true,
       format: ['list'],
       handler(range) {
         const [line, offset] = this.quill.getLine(range.index);
