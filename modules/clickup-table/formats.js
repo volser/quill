@@ -417,6 +417,14 @@ class TableContainer extends Container {
           colGroup.children.tail.remove()
         })
       }
+
+      // workaround: fix table col missed child break node when a block dragged above the table,
+      // throw error: leaf.position is not a function.
+      colGroup.children.forEach(child => {
+        if (child.children.length === 0) {
+          child.optimize()
+        }
+      })
     }
 
     // rebuild missing table cells
