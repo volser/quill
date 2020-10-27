@@ -380,6 +380,15 @@ class TableContainer extends Container {
       return false
     }
 
+    // workaround: fix table col missed child break node when a block dragged above the table,
+    // throw error: leaf.position is not a function.
+    const existTableCol = this.descendants(TableCol)
+    existTableCol.forEach(col => {
+      if (col.children.length === 0) {
+        col.optimize()
+      }
+    })
+
     setTimeout(() => {
       this.rebuildWholeTable()
       this.updateTableWidth()
@@ -417,14 +426,6 @@ class TableContainer extends Container {
           colGroup.children.tail.remove()
         })
       }
-
-      // workaround: fix table col missed child break node when a block dragged above the table,
-      // throw error: leaf.position is not a function.
-      colGroup.children.forEach(child => {
-        if (child.children.length === 0) {
-          child.optimize()
-        }
-      })
     }
 
     // rebuild missing table cells
