@@ -379,6 +379,15 @@ class TableContainer extends Container {
       this.remove()
       return false
     }
+    // workaround: remove the extra colgroup when two tables were accidentally merged into one.
+    const existTableGroup = this.descendants(TableColGroup)
+    if (existTableGroup.length > 1) {
+      existTableGroup.forEach((group, index) => {
+        if (index > 0) {
+          group.remove()
+        }
+      })
+    }
 
     // workaround: fix table col missed child break node when a block dragged above the table,
     // throw error: leaf.position is not a function.
