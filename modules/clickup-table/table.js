@@ -109,9 +109,9 @@ class Table extends Module {
         const rowToolCells = this.rowTool.domNode.querySelectorAll('.cu-row-tool-cell')
 
         colToolCells.forEach(cell => cell.classList.remove('cell-focused'))
-        colToolCells[curCellIndex].classList.add('cell-focused')
+        colToolCells[curCellIndex] && colToolCells[curCellIndex].classList.add('cell-focused')
         rowToolCells.forEach(cell => cell.classList.remove('row-focused'))
-        rowToolCells[curRowIndex].classList.add('row-focused')
+        rowToolCells[curRowIndex] && rowToolCells[curRowIndex].classList.add('row-focused')
       }
     })
 

@@ -379,6 +379,15 @@ class TableContainer extends Container {
       this.remove()
       return false
     }
+    // workaround: remove the extra colgroup when two tables were accidentally merged into one.
+    const existTableGroup = this.descendants(TableColGroup)
+    if (existTableGroup.length > 1) {
+      existTableGroup.forEach((group, index) => {
+        if (index > 0) {
+          group.remove()
+        }
+      })
+    }
 
     // workaround: fix table col missed child break node when a block dragged above the table,
     // throw error: leaf.position is not a function.
@@ -386,6 +395,14 @@ class TableContainer extends Container {
     existTableCol.forEach(col => {
       if (col.children.length === 0) {
         col.optimize()
+      }
+    })
+    // workaround: fix table cell line missed child break node when table was broken,
+    // throw error: leaf.position is not a function.
+    const existTableCellLine = this.descendants(TableCellLine)
+    existTableCellLine.forEach(cellLine => {
+      if (cellLine.children.length === 0) {
+        cellLine.optimize()
       }
     })
 
