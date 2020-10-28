@@ -388,6 +388,14 @@ class TableContainer extends Container {
         col.optimize()
       }
     })
+    // workaround: fix table cell line missed child break node when table was broken,
+    // throw error: leaf.position is not a function.
+    const existTableCellLine = this.descendants(TableCellLine)
+    existTableCellLine.forEach(cellLine => {
+      if (cellLine.children.length === 0) {
+        cellLine.optimize()
+      }
+    })
 
     setTimeout(() => {
       this.rebuildWholeTable()
