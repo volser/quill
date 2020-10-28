@@ -282,6 +282,7 @@ class Keyboard extends Module {
       },
       {},
     );
+
     const delta = new Delta()
       .retain(range.index)
       .delete(range.length)
@@ -423,6 +424,7 @@ Keyboard.DEFAULTS = {
       format: ['list'],
       handler(range) {
         const [line, offset] = this.quill.getLine(range.index);
+        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
         const lineFormats = line.formats()
         if (line.isToggleListItem()) {
           if (line.isThisItemExpanded()) {
@@ -433,48 +435,54 @@ Keyboard.DEFAULTS = {
               list: Object.assign(
                 {},
                 lineFormats.list,
-                { list: 'none' }
+                {
+                  list: 'none',
+                  'toggle-id': toggleListId()
+                }
               )
             }
+
             const delta = new Delta()
               .retain(range.index)
               .delete(range.length)
               .insert('\n', lineFormats)
+              .retain(lastLine.length() - lastlineOffset - 1)
               .retain(1, newLineFormats);
+
             this.quill.updateContents(delta, Quill.sources.USER);
             this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
             this.quill.focus();
           } else {
-            const childItems = line.getToggleListItemChildren()
-            const skipLength = childItems.reduce((len, childItem) => {
-              len = len + childItem.length()
-              return len
-            }, 0)
-            const subDelta = this.quill.getContents(
-              range.index,
-              line.length() - offset - 1
-            )
+            let updates = new Delta()
+            if (line === lastLine) {
+              const childItems = lastLine.getToggleListItemChildren()
+              const skipLength = childItems.reduce((len, childItem) => {
+                len = len + childItem.length()
+                return len
+              }, 0)
 
-            const delta = new Delta()
-              .retain(range.index)
-              .delete(line.length() - offset - 1)
-              .retain(1)
-              .retain(skipLength)
-              .concat(subDelta)
-              .insert('\n', Object.assign(
-                {},
-                lineFormats,
-                {
-                  list: Object.assign(
-                    {},
-                    lineFormats.list,
-                    { 'toggle-id': toggleListId() }
-                  )
-                }
-              ))
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(range.index + skipLength + 1, Quill.sources.SILENT);
-            this.quill.scrollIntoView();
+              updates = new Delta()
+                .retain(range.index)
+                .delete(range.length)
+                .retain(lastLine.length() - lastlineOffset + skipLength)
+                .insert('\n', Object.assign(
+                  {},
+                  lineFormats,
+                  {
+                    list: Object.assign(
+                      {},
+                      lineFormats.list,
+                      { 'toggle-id': toggleListId() }
+                    )
+                  }
+                ))
+
+              this.quill.updateContents(updates, Quill.sources.USER);
+              this.quill.setSelection(range.index + skipLength + 1, Quill.sources.SILENT);
+              this.quill.scrollIntoView();
+            } else {
+              return true
+            }
           }
         } else {
           return true
@@ -488,63 +496,131 @@ Keyboard.DEFAULTS = {
       format: ['list'],
       handler(range) {
         const [line, offset] = this.quill.getLine(range.index);
+        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
         const lineFormats = line.formats()
         if (line.isToggleListItem()) {
-          if (line.isThisItemExpanded()) {
-            const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
+          const storageModule = this.quill.getModule('storage')
+          if (!line.isThisItemExpanded()) {
+            line.expandItem()
+            if (storageModule) {
+              storageModule.addExpandedToggleList(lineFormats.list['toggle-id'])
+            }
+          }
+
+          const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
+          const newLineFormats = {
+            ...lineFormats,
+            indent: newLineIndent,
+            list: Object.assign(
+              {},
+              lineFormats.list,
+              {
+                list: 'none'
+              }
+            )
+          }
+
+          const delta = new Delta()
+            .retain(range.index)
+            .delete(range.length)
+            .insert('\n', lineFormats)
+            .retain(lastLine.length() - lastlineOffset - 1)
+            .retain(1, newLineFormats);
+
+          this.quill.updateContents(delta, Quill.sources.USER);
+          this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+          this.quill.focus();
+        } else {
+          return true
+        }
+      },
+    },
+
+    // must placed below 'togglelist shift enter',
+    // togglelist shift enter should be triggerred before here.
+    'list shift enter': {
+      key: 'Enter',
+      shiftKey: true,
+      format: ['list'],
+      handler(range) {
+        const [line, offset] = this.quill.getLine(range.index);
+        const lineFormats = line.formats()
+        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
+
+        if (
+          lineFormats.list &&
+          lineFormats.list.list !== 'none'
+        ) {
+          const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
+          const newLineFormats = {
+            ...lineFormats,
+            indent: newLineIndent,
+            list: Object.assign(
+              {},
+              lineFormats.list,
+              { list: 'none' }
+            )
+          }
+
+          const delta = new Delta()
+            .retain(range.index)
+            .delete(range.length)
+            .insert('\n', lineFormats)
+            .retain(lastLine.length() - lastlineOffset - 1)
+            .retain(1, newLineFormats)
+
+          this.quill.updateContents(delta, Quill.sources.USER);
+          this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+          this.quill.focus();
+        } else {
+          return true
+        }
+      }
+    },
+
+    'none type list enter': {
+      key: 'Enter',
+      format: ['list'],
+      handler(range) {
+        const [line, offset] = this.quill.getLine(range.index);
+        const lineFormats = line.formats()
+        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
+
+        if (
+          lineFormats.list &&
+          lineFormats.list.list === 'none'
+        ) {
+          const parentListItems = line.getToggleParents()
+          const parent = parentListItems[0] || null
+
+          if (parent) {
+            const parentFormats = parent.formats()
             const newLineFormats = {
               ...lineFormats,
-              indent: newLineIndent,
+              indent: parentFormats.indent || 0,
               list: Object.assign(
                 {},
                 lineFormats.list,
-                { list: 'none' }
+                { list: parentFormats.list.list }
               )
             }
+
             const delta = new Delta()
               .retain(range.index)
               .delete(range.length)
               .insert('\n', lineFormats)
+              .retain(lastLine.length() - lastlineOffset - 1)
               .retain(1, newLineFormats);
             this.quill.updateContents(delta, Quill.sources.USER);
             this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
             this.quill.focus();
           } else {
-            const childItems = line.getToggleListItemChildren()
-            const skipLength = childItems.reduce((len, childItem) => {
-              len = len + childItem.length()
-              return len
-            }, 0)
-            const subDelta = this.quill.getContents(
-              range.index,
-              line.length() - offset - 1
-            )
-
-            const delta = new Delta()
-              .retain(range.index)
-              .delete(line.length() - offset - 1)
-              .retain(1)
-              .retain(skipLength)
-              .concat(subDelta)
-              .insert('\n', Object.assign(
-                {},
-                lineFormats,
-                {
-                  list: Object.assign(
-                    {},
-                    lineFormats.list,
-                    { 'toggle-id': toggleListId() }
-                  )
-                }
-              ))
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(range.index + skipLength + 1, Quill.sources.SILENT);
-            this.quill.scrollIntoView();
+            return true
           }
         } else {
           return true
         }
-      },
+      }
     },
 
     'header enter': {
