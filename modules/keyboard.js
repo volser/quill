@@ -585,7 +585,6 @@ Keyboard.DEFAULTS = {
         const [line, offset] = this.quill.getLine(range.index);
         const lineFormats = line.formats()
         const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
-
         if (
           lineFormats.list &&
           lineFormats.list.list === 'none'

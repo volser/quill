@@ -21,6 +21,8 @@ const CELL_DEFAULT = {
 const WIDE_TABLE_CLASS = 'clickup-table-view_wide';
 const WIDE_TABLE_WIDTH = 730;
 
+const WRAPPER_INDENT_KEY = 'wrapper-indent'
+
 class TableCellLine extends Block {
   static create(value) {
     const node = super.create(value)
@@ -942,19 +944,21 @@ class ListItem extends Block {
 
   getListItemChildren() {
     const children = []
-    const curFormat = this.formats();
+    const curFormat = this.listFormats();
     const curIndent = curFormat.indent || 0
     let next = this.next
-    let nextFormat = next && next.formats()
+    let nextFormat = (next &&
+      typeof next.listFormats === 'function' &&
+      next.listFormats()) || {}
     let nextIndent = nextFormat && nextFormat.indent || 0
     while (
       next &&
-      next.statics.blotName === ListItem.blotName
+      (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
     ) {
       if (nextIndent - curIndent > 0) {
         children.push(next)
         next = next.next
-        nextFormat = next && next.formats()
+        nextFormat = next && next.listFormats()
         nextIndent = nextFormat && nextFormat.indent || 0
       } else {
         next = null
@@ -964,7 +968,7 @@ class ListItem extends Block {
   }
 
   isToggleListItem() {
-    const formats = this.formats()
+    const formats = this.listFormats()
     return formats && formats.list && formats.list.list === 'toggled'
   }
 
@@ -974,10 +978,11 @@ class ListItem extends Block {
   }
 
   hasToggleChildren() {
-    const curIndent = this.formats()['indent'] || 0
+    const curIndent = this.listFormats()['indent'] || 0
 
     if (this.next) {
-      const nextFormats = this.next.formats()
+      const nextFormats = (typeof this.next.listFormats === 'function' &&
+        this.next.listFormats()) || {}
       return nextFormats &&
         nextFormats.list &&
         nextFormats.indent &&
@@ -1004,19 +1009,19 @@ class ListItem extends Block {
   getToggleListItemChildren() {
     if (!this.isToggleListItem()) return []
     const children = []
-    const curFormat = this.formats();
+    const curFormat = this.listFormats();
     const curIndent = curFormat.indent || 0
     let next = this.next
-    let nextFormat = next && next.formats()
+    let nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
     let nextIndent = nextFormat && nextFormat.indent || 0
     while (
       next &&
-      next.statics.blotName === ListItem.blotName
+      (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
     ) {
       if (nextIndent - curIndent > 0) {
         children.push(next)
         next = next.next
-        nextFormat = next && next.formats()
+        nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
         nextIndent = nextFormat && nextFormat.indent || 0
       } else {
         next = null
@@ -1026,20 +1031,20 @@ class ListItem extends Block {
   }
 
   toggleChildren() {
-    const curFormat = this.formats();
+    const curFormat = this.listFormats();
     const curIndent = curFormat.indent || 0
     if (curFormat.list.list === 'toggled') {
       let next = this.next
-      let nextFormat = next && next.formats()
+      let nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
       let nextIndent = nextFormat && nextFormat.indent || 0
       while (
         next &&
-        next.statics.blotName === ListItem.blotName
+        (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
       ) {
         if (nextIndent - curIndent > 0) {
           next.optimize()
           next = next.next
-          nextFormat = next && next.formats()
+          nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
           nextIndent = nextFormat && nextFormat.indent || 0
         } else {
           next = null
@@ -1050,15 +1055,15 @@ class ListItem extends Block {
 
   getToggleParents() {
     let prev = this.prev
-    let prevFormat = prev && prev.formats()
+    let prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
     let prevIndent = prevFormat && prevFormat.indent || 0
     let parent = this
-    let parentFormat = parent && parent.formats()
+    let parentFormat = (parent && typeof parent.listFormats === 'function' && parent.listFormats()) || {}
     let parentIndent = parentFormat && parentFormat.indent || 0
     const parents = []
     while (
       prev &&
-      prev.statics.blotName === ListItem.blotName
+      (prev.statics.blotName === ListItem.blotName || prev.statics.blotName === ListBlockWrapper.blotName)
     ) {
       if (parentIndent - prevIndent > 0) {
         parent = prev
@@ -1068,7 +1073,7 @@ class ListItem extends Block {
       }
 
       prev = prev.prev
-      prevFormat = prev && prev.formats()
+      prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
       prevIndent = prevFormat && prevFormat.indent || 0
     }
     return parents
@@ -1127,13 +1132,182 @@ class ListItem extends Block {
 
     super.optimize(context)
   }
+
+  listFormats () {
+    return this.formats()
+  }
 }
 ListItem.blotName = 'list';
 ListItem.tagName = 'LI';
 ListItem.DEFAULT_TOGGLE_PLACEHOLDER = 'Empty. Click or drag text/images inside'
 
-ListContainer.allowedChildren = [ListItem];
+class ListBlockWrapper extends Container {
+  static create(value) {
+    const node = super.create(value)
+
+    CELL_ATTRIBUTES
+      .concat(CELL_IDENTITY_KEYS)
+      .concat([ListItem.blotName, WRAPPER_INDENT_KEY])
+      .forEach(attrName => {
+        if (value[attrName]) {
+          node.setAttribute(`data-${attrName}`, value[attrName])
+        }
+      })
+
+    if (value[WRAPPER_INDENT_KEY]) {
+      node.classList.add(`ql-indent-${value[WRAPPER_INDENT_KEY]}`)
+    }
+
+    return node
+  }
+
+  static addAllowChildren(Blot) {
+    if (ListBlockWrapper.allowedChildren.indexOf(Blot) < 0) {
+      ListBlockWrapper.allowedChildren.push(Blot)
+    }
+  }
+
+  listFormats() {
+    const formats = {}
+
+    if (this.domNode.hasAttribute(`data-${WRAPPER_INDENT_KEY}`)) {
+      formats['indent'] = parseInt(this.domNode.getAttribute(`data-${WRAPPER_INDENT_KEY}`), 10) || undefined
+    }
+
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+      .concat([ListItem.blotName])
+      .reduce((formats, attribute) => {
+        if (this.domNode.hasAttribute(`data-${attribute}`)) {
+          formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
+        }
+        return formats
+      }, formats)
+  }
+
+  getListItemChildren() {
+    const children = []
+    const curFormat = this.listFormats();
+    const curIndent = curFormat.indent || 0
+    let next = this.next
+    let nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
+    let nextIndent = nextFormat && nextFormat.indent || 0
+    while (
+      next &&
+      (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
+    ) {
+      if (nextIndent - curIndent > 0) {
+        children.push(next)
+        next = next.next
+        nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
+        nextIndent = nextFormat && nextFormat.indent || 0
+      } else {
+        next = null
+      }
+    }
+    return children
+  }
+
+  isToggleListItem() {
+    return false
+  }
+
+  isThisItemExpanded() {
+    return false
+  }
+
+  hasToggleChildren() {
+    const curIndent = this.listFormats()['indent'] || 0
+
+    if (this.next) {
+      const nextFormats = (typeof this.next.listFormats === 'function' && this.next.listFormats()) || {}
+      return nextFormats &&
+        nextFormats.list &&
+        nextFormats.indent &&
+        nextFormats.indent > curIndent
+    } else {
+      return false
+    }
+  }
+
+  expandItem() {
+    return false
+  }
+
+  collapseItem() {
+    return false
+  }
+
+  getToggleListItemChildren() {
+    return []
+  }
+
+  toggleChildren() {
+    return false
+  }
+
+  getToggleParents() {
+    let prev = this.prev
+    let prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
+    let prevIndent = prevFormat && prevFormat.indent || 0
+    let parent = this
+    let parentFormat = (parent && typeof parent.listFormats === 'function' && parent.listFormats()) || {}
+    let parentIndent = parentFormat && parentFormat.indent || 0
+    const parents = []
+    while (
+      prev &&
+      (prev.statics.blotName === ListItem.blotName || prev.statics.blotName === ListBlockWrapper.blotName)
+    ) {
+      if (parentIndent - prevIndent > 0) {
+        parent = prev
+        parentFormat = prevFormat
+        parentIndent = prevIndent
+        parents.push(prev)
+      }
+
+      prev = prev.prev
+      prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
+      prevIndent = prevFormat && prevFormat.indent || 0
+    }
+    return parents
+  }
+
+  optimize(context) {
+    const { row, cell, rowspan, colspan } = this.listFormats()
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        row,
+        cell,
+        colspan,
+        rowspan
+      })
+    }
+
+    // set own visibility
+    const parents = this.getToggleParents()
+    const isExpanded = parents.every(parent => {
+      return parent.domNode.getAttribute('data-list-toggle') ||
+        (
+          parent.listFormats() && parent.listFormats().list &&
+          parent.listFormats().list.list !== 'toggled'
+        )
+    })
+
+    css(this.domNode, {
+      display: `${isExpanded ? 'block' : 'none'}`
+    })
+
+    super.optimize(context)
+  }
+}
+ListBlockWrapper.blotName = 'list-block-wrapper';
+ListBlockWrapper.className = 'clickup-list-block-wrapper';
+ListBlockWrapper.tagName = 'LI';
+
+ListContainer.allowedChildren = [ListItem, ListBlockWrapper];
 ListItem.requiredContainer = ListContainer;
+ListBlockWrapper.requiredContainer = ListContainer;
+ListBlockWrapper.allowedChildren = [];
 
 TableView.allowedChildren = [TableContainer]
 TableContainer.requiredContainer = TableView
@@ -1189,6 +1363,7 @@ export {
   TableView,
 
   ListItem,
+  ListBlockWrapper,
   ListContainer,
 
   // identity getters
