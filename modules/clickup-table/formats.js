@@ -947,10 +947,8 @@ class ListItem extends Block {
     const curFormat = this.listFormats();
     const curIndent = curFormat.indent || 0
     let next = this.next
-    let nextFormat = (next &&
-      typeof next.listFormats === 'function' &&
-      next.listFormats()) || {}
-    let nextIndent = nextFormat && nextFormat.indent || 0
+    let nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
+    let nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
     while (
       next &&
       (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
@@ -958,8 +956,8 @@ class ListItem extends Block {
       if (nextIndent - curIndent > 0) {
         children.push(next)
         next = next.next
-        nextFormat = next && next.listFormats()
-        nextIndent = nextFormat && nextFormat.indent || 0
+        nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
+        nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
       } else {
         next = null
       }
@@ -978,15 +976,15 @@ class ListItem extends Block {
   }
 
   hasToggleChildren() {
-    const curIndent = this.listFormats()['indent'] || 0
+    const curIndent = this.getIndent()
 
     if (this.next) {
-      const nextFormats = (typeof this.next.listFormats === 'function' &&
-        this.next.listFormats()) || {}
+      const nextFormats = (typeof this.next.listFormats === 'function' && this.next.listFormats()) || {}
+      const nextIndent = (typeof this.next.getIndent === 'function' && this.next.getIndent()) || 0
       return nextFormats &&
         nextFormats.list &&
-        nextFormats.indent &&
-        nextFormats.indent > curIndent
+        nextIndent &&
+        nextIndent > curIndent
     } else {
       return false
     }
@@ -1009,11 +1007,10 @@ class ListItem extends Block {
   getToggleListItemChildren() {
     if (!this.isToggleListItem()) return []
     const children = []
-    const curFormat = this.listFormats();
-    const curIndent = curFormat.indent || 0
+    const curIndent = this.getIndent()
     let next = this.next
     let nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
-    let nextIndent = nextFormat && nextFormat.indent || 0
+    let nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
     while (
       next &&
       (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
@@ -1022,7 +1019,7 @@ class ListItem extends Block {
         children.push(next)
         next = next.next
         nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
-        nextIndent = nextFormat && nextFormat.indent || 0
+        nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
       } else {
         next = null
       }
@@ -1032,11 +1029,11 @@ class ListItem extends Block {
 
   toggleChildren() {
     const curFormat = this.listFormats();
-    const curIndent = curFormat.indent || 0
+    const curIndent = this.getIndent();
     if (curFormat.list.list === 'toggled') {
       let next = this.next
       let nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
-      let nextIndent = nextFormat && nextFormat.indent || 0
+      let nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
       while (
         next &&
         (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
@@ -1045,7 +1042,7 @@ class ListItem extends Block {
           next.optimize()
           next = next.next
           nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
-          nextIndent = nextFormat && nextFormat.indent || 0
+          nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
         } else {
           next = null
         }
@@ -1056,10 +1053,10 @@ class ListItem extends Block {
   getToggleParents() {
     let prev = this.prev
     let prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
-    let prevIndent = prevFormat && prevFormat.indent || 0
+    let prevIndent = (prev && typeof prev.getIndent === 'function' && prev.getIndent()) || 0
     let parent = this
     let parentFormat = (parent && typeof parent.listFormats === 'function' && parent.listFormats()) || {}
-    let parentIndent = parentFormat && parentFormat.indent || 0
+    let parentIndent = (parent && typeof parent.getIndent === 'function' && parent.getIndent()) || 0
     const parents = []
     while (
       prev &&
@@ -1074,7 +1071,7 @@ class ListItem extends Block {
 
       prev = prev.prev
       prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
-      prevIndent = prevFormat && prevFormat.indent || 0
+      prevIndent = (prev && typeof prev.getIndent === 'function' && prev.getIndent()) || 0
     }
     return parents
   }
@@ -1136,6 +1133,11 @@ class ListItem extends Block {
   listFormats () {
     return this.formats()
   }
+
+  getIndent() {
+    const listFormats = this.listFormats()
+    return listFormats['indent'] || 0
+  }
 }
 ListItem.blotName = 'list';
 ListItem.tagName = 'LI';
@@ -1155,7 +1157,7 @@ class ListBlockWrapper extends Container {
       })
 
     if (value[WRAPPER_INDENT_KEY]) {
-      node.classList.add(`ql-indent-${value[WRAPPER_INDENT_KEY]}`)
+      node.classList.add(`ql-wrapper-indent-${value[WRAPPER_INDENT_KEY]}`)
     }
 
     return node
@@ -1171,7 +1173,7 @@ class ListBlockWrapper extends Container {
     const formats = {}
 
     if (this.domNode.hasAttribute(`data-${WRAPPER_INDENT_KEY}`)) {
-      formats['indent'] = parseInt(this.domNode.getAttribute(`data-${WRAPPER_INDENT_KEY}`), 10) || undefined
+      formats[WRAPPER_INDENT_KEY] = parseInt(this.domNode.getAttribute(`data-${WRAPPER_INDENT_KEY}`), 10) || undefined
     }
 
     return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
@@ -1186,11 +1188,9 @@ class ListBlockWrapper extends Container {
 
   getListItemChildren() {
     const children = []
-    const curFormat = this.listFormats();
-    const curIndent = curFormat.indent || 0
+    const curIndent = this.getIndent()
     let next = this.next
-    let nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
-    let nextIndent = nextFormat && nextFormat.indent || 0
+    let nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
     while (
       next &&
       (next.statics.blotName === ListItem.blotName || next.statics.blotName === ListBlockWrapper.blotName)
@@ -1198,8 +1198,7 @@ class ListBlockWrapper extends Container {
       if (nextIndent - curIndent > 0) {
         children.push(next)
         next = next.next
-        nextFormat = (next && typeof next.listFormats === 'function' && next.listFormats()) || {}
-        nextIndent = nextFormat && nextFormat.indent || 0
+        nextIndent = (next && typeof next.getIndent === 'function' && next.getIndent()) || 0
       } else {
         next = null
       }
@@ -1216,14 +1215,15 @@ class ListBlockWrapper extends Container {
   }
 
   hasToggleChildren() {
-    const curIndent = this.listFormats()['indent'] || 0
+    const curIndent = this.getIndent()
 
     if (this.next) {
       const nextFormats = (typeof this.next.listFormats === 'function' && this.next.listFormats()) || {}
+      const nextIndent = (typeof this.next.getIndent === 'function' && this.next.getIndent()) || 0
       return nextFormats &&
         nextFormats.list &&
-        nextFormats.indent &&
-        nextFormats.indent > curIndent
+        nextIndent &&
+        nextIndent > curIndent
     } else {
       return false
     }
@@ -1248,10 +1248,10 @@ class ListBlockWrapper extends Container {
   getToggleParents() {
     let prev = this.prev
     let prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
-    let prevIndent = prevFormat && prevFormat.indent || 0
+    let prevIndent = (prev && typeof prev.getIndent === 'function' && prev.getIndent()) || 0
     let parent = this
     let parentFormat = (parent && typeof parent.listFormats === 'function' && parent.listFormats()) || {}
-    let parentIndent = parentFormat && parentFormat.indent || 0
+    let parentIndent = (parent && typeof parent.getIndent === 'function' && parent.getIndent()) || 0
     const parents = []
     while (
       prev &&
@@ -1266,7 +1266,7 @@ class ListBlockWrapper extends Container {
 
       prev = prev.prev
       prevFormat = (prev && typeof prev.listFormats === 'function' && prev.listFormats()) || {}
-      prevIndent = prevFormat && prevFormat.indent || 0
+      prevIndent = (prev && typeof prev.getIndent === 'function' && prev.getIndent()) || 0
     }
     return parents
   }
@@ -1298,6 +1298,11 @@ class ListBlockWrapper extends Container {
     })
 
     super.optimize(context)
+  }
+
+  getIndent() {
+    const listFormats = this.listFormats()
+    return listFormats[WRAPPER_INDENT_KEY] || 0
   }
 }
 ListBlockWrapper.blotName = 'list-block-wrapper';

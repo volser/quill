@@ -1,3 +1,5 @@
+MAX_INDENT = 9
+
 .cu-draggable-anchor
   &.cu-draggable-anchor-center
     display: flex
@@ -31,3 +33,14 @@
   &.not-allowed-active
     background-color: rgba(209,100,100,.3)
     cursor: not-allowed
+
+.ql-editor
+  for num in (1..MAX_INDENT)
+    .ql-wrapper-indent-{num}:not(.ql-direction-rtl)
+      padding-left: (3*num)em
+    li.ql-wrapper-indent-{num}:not(.ql-direction-rtl)
+      padding-left: (3*num + LIST_STYLE_OUTER_WIDTH)em
+    .ql-wrapper-indent-{num}.ql-direction-rtl.ql-align-right
+      padding-right: (3*num)em
+    li.ql-wrapper-indent-{num}.ql-direction-rtl.ql-align-right
+      padding-right: (3*num + LIST_STYLE_OUTER_WIDTH)em
