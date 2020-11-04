@@ -389,6 +389,50 @@ Keyboard.DEFAULTS = {
       format: ['list'],
       empty: true,
       handler(range, context) {
+        // custom behaviour for none type list.
+        const [line, offset] = this.quill.getLine(range.index);
+        const lineFormats = line.formats()
+        if (
+          lineFormats.list &&
+          lineFormats.list.list === 'none'
+        ) {
+          let targetListItem = line.prev;
+          let targetFormats = null;
+          while (targetListItem) {
+            if (targetListItem.statics.blotName === 'list') {
+              const curFormats = targetListItem.formats();
+              if (curFormats.list.list !== 'none') {
+                targetFormats = curFormats;
+                targetListItem = null
+              } else {
+                targetListItem = targetListItem.prev;
+              }
+            } else {
+              targetListItem = targetListItem.prev;
+            }
+          }
+
+          if (targetFormats) {
+            const newLineFormats = {
+              ...lineFormats,
+              indent: targetFormats.indent || 0,
+              list: Object.assign(
+                {},
+                lineFormats.list,
+                { list: targetFormats.list.list }
+              )
+            }
+
+            this.quill.formatLine(
+              range.index,
+              range.length,
+              newLineFormats,
+              Quill.sources.USER,
+            );
+            return false;
+          }
+        }
+
         const formats = { list: false };
         if (context.format.indent) {
           formats.indent = false;
