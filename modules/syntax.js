@@ -198,7 +198,7 @@ class SyntaxCodeBlockContainer extends CodeBlockContainer {
       node => node !== this.uiNode,
     );
     const text = `${nodes.map(node => node.textContent).join('\n')}\n`;
-    const language = SyntaxCodeBlock.formats(this.children.head.domNode);
+    const language = SyntaxCodeBlock.formats(this.children.head.domNode)[SyntaxCodeBlock.blotName];
     if (forced || this.forceNext || this.cachedText !== text) {
       if (text.trim().length > 0 || this.cachedText == null) {
         const oldDelta = this.children.reduce((delta, child) => {
@@ -248,7 +248,7 @@ class SyntaxCodeBlockContainer extends CodeBlockContainer {
       this.children.head != null &&
       this.uiNode != null
     ) {
-      const language = SyntaxCodeBlock.formats(this.children.head.domNode);
+      const language = SyntaxCodeBlock.formats(this.children.head.domNode)[SyntaxCodeBlock.blotName];
       if (language !== this.uiNode.value) {
         this.uiNode.value = language;
       }
@@ -312,7 +312,7 @@ class Syntax extends Module {
       if (blot.uiNode == null) {
         blot.attachUI(select);
         if (blot.children.head) {
-          select.value = SyntaxCodeBlock.formats(blot.children.head.domNode);
+          select.value = SyntaxCodeBlock.formats(blot.children.head.domNode)[SyntaxCodeBlock.blotName];
         }
       }
     });

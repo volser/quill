@@ -46,7 +46,8 @@ window.onload = () => {
           zIndex: 100
         }
       },
-      storage: true
+      storage: true,
+      syntax: true
     }
   })
 
