@@ -22,6 +22,14 @@ const WIDE_TABLE_CLASS = 'clickup-table-view_wide';
 const WIDE_TABLE_WIDTH = 730;
 
 const WRAPPER_INDENT_KEY = 'wrapper-indent'
+const SUPPORTED_LIST_TYPES = [
+  'bullet',
+  'ordered',
+  'checked',
+  'unchecked',
+  'toggled',
+  'none',
+];
 
 class TableCellLine extends Block {
   static create(value) {
@@ -1378,6 +1386,7 @@ export {
 
   // attributes
   CELL_IDENTITY_KEYS,
-  CELL_ATTRIBUTES
+  CELL_ATTRIBUTES,
+  SUPPORTED_LIST_TYPES,
 }
 

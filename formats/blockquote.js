@@ -6,7 +6,8 @@ import {
   CELL_IDENTITY_KEYS,
   CELL_ATTRIBUTES,
   ListItem,
-  ListBlockWrapper
+  ListBlockWrapper,
+  SUPPORTED_LIST_TYPES,
 } from '../modules/clickup-table/formats'
 
 const IN_LIST = 'in-list'
@@ -90,7 +91,12 @@ class Blockquote extends Block {
       })
 
     if (value[IN_LIST]) {
-      node.setAttribute(`data-${IN_LIST}`, 'true')
+      node.setAttribute(
+        `data-${IN_LIST}`,
+        SUPPORTED_LIST_TYPES.indexOf(value[IN_LIST]) >= 0
+          ? value[IN_LIST]
+          : 'none'
+      );
     }
 
     if (value[WRAPPER_INDENT]) {
