@@ -551,7 +551,7 @@ Keyboard.DEFAULTS = {
           lineFormats.list &&
           lineFormats.list.list !== 'none'
         ) {
-          const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
+          const newLineIndent = lineFormats.indent ? (lineFormats.indent): 0
           const newLineFormats = {
             ...lineFormats,
             indent: newLineIndent,
@@ -581,7 +581,7 @@ Keyboard.DEFAULTS = {
     'none type list enter': {
       key: 'Enter',
       format: ['list'],
-      handler(range) {
+      handler(range, context) {
         const [line, offset] = this.quill.getLine(range.index);
         const lineFormats = line.formats()
         const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
@@ -589,18 +589,30 @@ Keyboard.DEFAULTS = {
           lineFormats.list &&
           lineFormats.list.list === 'none'
         ) {
-          const parentListItems = line.getToggleParents()
-          const parent = parentListItems[0] || null
+          let targetListItem = line.prev;
+          let targetFormats = null;
+          while (targetListItem) {
+            if (targetListItem.statics.blotName === 'list') {
+              const curFormats = targetListItem.formats();
+              if (curFormats.list.list !== 'none') {
+                targetFormats = curFormats;
+                targetListItem = null
+              } else {
+                targetListItem = targetListItem.prev;
+              }
+            } else {
+              targetListItem = targetListItem.prev;
+            }
+          }
 
-          if (parent) {
-            const parentFormats = parent.formats()
+          if (targetFormats) {
             const newLineFormats = {
               ...lineFormats,
-              indent: parentFormats.indent || 0,
+              indent: targetFormats.indent || 0,
               list: Object.assign(
                 {},
                 lineFormats.list,
-                { list: parentFormats.list.list }
+                { list: targetFormats.list.list }
               )
             }
 
@@ -614,10 +626,10 @@ Keyboard.DEFAULTS = {
             this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
             this.quill.focus();
           } else {
-            return true
+            return true;
           }
         } else {
-          return true
+          return true;
         }
       }
     },
