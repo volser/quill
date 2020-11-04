@@ -426,7 +426,10 @@ Keyboard.DEFAULTS = {
         const [line, offset] = this.quill.getLine(range.index);
         const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
         const lineFormats = line.formats()
-        if (line.isToggleListItem()) {
+        if (
+          line.statics.blotName === 'list' &&
+          line.isToggleListItem()
+        ) {
           if (line.isThisItemExpanded()) {
             const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
             const newLineFormats = {
@@ -498,7 +501,10 @@ Keyboard.DEFAULTS = {
         const [line, offset] = this.quill.getLine(range.index);
         const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
         const lineFormats = line.formats()
-        if (line.isToggleListItem()) {
+        if (
+          line.statics.blotName === 'list' &&
+          line.isToggleListItem()
+        ) {
           const storageModule = this.quill.getModule('storage')
           if (!line.isThisItemExpanded()) {
             line.expandItem()
