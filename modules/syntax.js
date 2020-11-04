@@ -10,6 +10,16 @@ import TextBlot, { escapeText } from '../blots/text';
 import CodeBlock, { CodeBlockContainer } from '../formats/code';
 import { traverse } from './clipboard';
 
+import {
+  CELL_IDENTITY_KEYS,
+  CELL_ATTRIBUTES,
+  ListBlockWrapper,
+  SUPPORTED_LIST_TYPES,
+} from '../modules/clickup-table/formats';
+
+const IN_LIST = 'in-list'
+const WRAPPER_INDENT = 'wrapper-indent'
+
 const TokenAttributor = new ClassAttributor('code-token', 'hljs', {
   scope: Scope.INLINE,
 });
@@ -52,18 +62,58 @@ CodeToken.className = 'ql-token';
 
 class SyntaxCodeBlock extends CodeBlock {
   static create(value) {
-    const domNode = super.create(value);
     if (typeof value === 'string') {
-      domNode.setAttribute('data-language', value);
+      value = { [SyntaxCodeBlock.blotName]: value }
     }
+
+    const domNode = super.create(value);
+
+    if (typeof value[SyntaxCodeBlock.blotName] === 'string') {
+      domNode.setAttribute('data-language', value[SyntaxCodeBlock.blotName]);
+    }
+
+    CELL_IDENTITY_KEYS
+      .concat(CELL_ATTRIBUTES)
+      .forEach(key => {
+        if (value[key]) domNode.setAttribute(`data-${key}`, value[key])
+      })
+
+    if (value[IN_LIST]) {
+      domNode.setAttribute(
+        `data-${IN_LIST}`,
+        SUPPORTED_LIST_TYPES.indexOf(value[IN_LIST]) >= 0
+          ? value[IN_LIST]
+          : 'none'
+      );
+    }
+
+    if (value[WRAPPER_INDENT]) {
+      domNode.setAttribute(`data-${WRAPPER_INDENT}`, value[WRAPPER_INDENT])
+    }
+
     return domNode;
   }
 
   static formats(domNode) {
-    return domNode.getAttribute('data-language') || 'plain';
+    const formats = {}
+
+    if (domNode.hasAttribute('data-language')) {
+      formats[SyntaxCodeBlock.blotName] = domNode.getAttribute('data-language') || 'plain';
+    }
+
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+      .concat([IN_LIST, WRAPPER_INDENT])
+      .reduce((formats, attribute) => {
+        if (domNode.hasAttribute(`data-${attribute}`)) {
+          formats[attribute] = domNode.getAttribute(`data-${attribute}`) || undefined
+        }
+        return formats
+      }, formats)
   }
 
-  static register() {} // Syntax module will register
+  static register() {
+    ListBlockWrapper.addAllowChildren(SyntaxCodeBlockContainer);
+  }
 
   format(name, value) {
     if (name === this.statics.blotName && value) {
@@ -73,6 +123,24 @@ class SyntaxCodeBlock extends CodeBlock {
     }
   }
 
+  optimize(context) {
+    const formats = SyntaxCodeBlock.formats(this.domNode)
+    const { row, cell, rowspan, colspan } = formats
+    if (this.statics.requiredContainer &&
+      !(this.parent instanceof this.statics.requiredContainer)) {
+      this.wrap(this.statics.requiredContainer.blotName, {
+        row,
+        cell,
+        colspan,
+        rowspan,
+        [IN_LIST]: formats[IN_LIST],
+        [WRAPPER_INDENT]: formats[WRAPPER_INDENT]
+      })
+    }
+
+    super.optimize(context)
+  }
+
   replaceWith(name, value) {
     this.formatAt(0, this.length(), CodeToken.blotName, false);
     return super.replaceWith(name, value);
@@ -80,6 +148,28 @@ class SyntaxCodeBlock extends CodeBlock {
 }
 
 class SyntaxCodeBlockContainer extends CodeBlockContainer {
+  static create(value) {
+    const node = super.create(value)
+
+    CELL_ATTRIBUTES
+      .concat(CELL_IDENTITY_KEYS)
+      .forEach(attrName => {
+        if (value[attrName]) {
+          node.setAttribute(`data-${attrName}`, value[attrName])
+        }
+      })
+
+    if (value[IN_LIST]) {
+      node.setAttribute(`data-${IN_LIST}`, 'true')
+    }
+
+    if (value[WRAPPER_INDENT]) {
+      node.setAttribute(`data-${WRAPPER_INDENT}`, value[WRAPPER_INDENT])
+    }
+
+    return node
+  }
+
   attach() {
     super.attach();
     this.forceNext = false;
@@ -136,6 +226,22 @@ class SyntaxCodeBlockContainer extends CodeBlockContainer {
   }
 
   optimize(context) {
+    const formats = this.getFormats()
+    const { row, cell, rowspan, colspan } = formats
+    if (
+      formats[IN_LIST] &&
+      !(this.parent instanceof ListBlockWrapper)
+    ) {
+      this.wrap(ListBlockWrapper.blotName, {
+        row,
+        cell,
+        colspan,
+        rowspan,
+        list: 'none',
+        [WRAPPER_INDENT]: formats[WRAPPER_INDENT]
+      })
+    }
+
     super.optimize(context);
     if (
       this.parent != null &&
@@ -147,6 +253,18 @@ class SyntaxCodeBlockContainer extends CodeBlockContainer {
         this.uiNode.value = language;
       }
     }
+  }
+
+  getFormats() {
+    const formats = {}
+    return CELL_ATTRIBUTES.concat(CELL_IDENTITY_KEYS)
+      .concat([IN_LIST, WRAPPER_INDENT])
+      .reduce((formats, attribute) => {
+        if (this.domNode.hasAttribute(`data-${attribute}`)) {
+          formats[attribute] = this.domNode.getAttribute(`data-${attribute}`) || undefined
+        }
+        return formats
+      }, formats)
   }
 }
 SyntaxCodeBlockContainer.allowedChildren = [SyntaxCodeBlock];

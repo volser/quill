@@ -107,11 +107,31 @@ window.onload = () => {
         quill.format('blockquote', {
           ...lineFormats.list,
           'wrapper-indent': lineFormats.indent,
-          'in-list': true,
+          'in-list': lineFormats.list.list,
         })
         quill.format('indent', false)
       } else {
         quill.format('blockquote', {})
+      }
+    }, false)
+
+  document.querySelector('#insert-code')
+    .addEventListener('click', () => {
+      const range = quill.getSelection()
+      const [line, offset] = quill.getLine(range.index)
+      const lineFormats = line.formats()
+      
+      if (
+        line.statics.blotName === 'list'
+      ) {
+        quill.format('code-block', {
+          ...lineFormats.list,
+          'wrapper-indent': lineFormats.indent,
+          'in-list': lineFormats.list.list,
+        })
+        quill.format('indent', false)
+      } else {
+        quill.format('code-block', {})
       }
     }, false)
 }
