@@ -65,6 +65,21 @@ class Table extends Module {
       if (!range) return true
       const [curLine] = this.quill.getLine(range.index)
       const lineFomrats = curLine.formats()
+
+      // reset selection to prevent cutting or delete single table cell.      
+      const lines = this.quill.getLines(range)
+      if (lines.length === 1) {
+        const theLine = lines[0];
+        const theLineFormats = theLine.formats();
+        if (
+          theLineFormats[theLine.statics.blotName] &&
+          theLineFormats[theLine.statics.blotName].cell &&
+          range.length === theLine.length()
+        ) {
+          this.quill.setSelection(range.index, range.length - 1);
+        }
+      }
+
       // hide table tools when the cursor go out of the table
       if (
         !(
