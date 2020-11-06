@@ -26,6 +26,7 @@ import { getEventComposedPath } from '../clickup-table-control/utils'
 import TableColumnTool from '../clickup-table-control/clickup-table-column-tool'
 import TableRowTool from '../clickup-table-control/clickup-table-row-tool'
 import TableTableTool from '../clickup-table-control/clickup-table-table-tool'
+import ScrollBlot from '../../blots/scroll'
 
 class Table extends Module {
   static register() {
@@ -61,14 +62,13 @@ class Table extends Module {
       }
     })
 
-    this.quill.on('selection-change', range => {
+    this.quill.on('selection-change', (range, oldRange) => {
       if (!range) return true
       const [curLine] = this.quill.getLine(range.index)
       const lineFomrats = curLine.formats()
 
-      // reset selection to prevent cutting or delete single table cell.      
       const lines = this.quill.getLines(range)
-      if (lines.length === 1) {
+      if (lines.length === 1) { // reset selection to prevent cutting or delete single table cell.
         const theLine = lines[0];
         const theLineFormats = theLine.formats();
         if (
@@ -76,7 +76,38 @@ class Table extends Module {
           theLineFormats[theLine.statics.blotName].cell &&
           range.length === theLine.length()
         ) {
-          this.quill.setSelection(range.index, range.length - 1);
+          this.quill.setSelection(range.index, range.length - 1, Quill.sources.SILENT);
+        }
+      } else if (lines.length > 1) { // reset selection to prevent highlighting(selecting) multiple table cells
+        const firstLine = lines[0]
+        const firstLineFormats = firstLine.formats()
+        const lastLine = lines[lines.length - 1]
+        const lastLineFormats = lastLine.formats()
+        
+        if (
+          firstLineFormats[firstLine.statics.blotName] &&
+          lastLineFormats[lastLine.statics.blotName] &&
+          firstLineFormats[firstLine.statics.blotName].cell &&
+          lastLineFormats[lastLine.statics.blotName].cell &&
+          (firstLineFormats[firstLine.statics.blotName].row !== lastLineFormats[lastLine.statics.blotName].row ||
+          firstLineFormats[firstLine.statics.blotName].cell !== lastLineFormats[lastLine.statics.blotName].cell)
+        ) {
+          let tableView = null
+          let parent = firstLine.parent
+          while (parent) {
+            if (parent instanceof TableView) {
+              tableView = parent
+              parent = null
+            } else if (parent instanceof ScrollBlot) {
+              parent = null
+            } else {
+              parent = parent.parent
+            }
+          }
+          if (tableView) {
+            const tableViewStartIndex = this.quill.getIndex(tableView)
+            this.quill.setSelection(tableViewStartIndex, tableView.length(), Quill.sources.SILENT);
+          }
         }
       }
 
