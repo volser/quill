@@ -286,7 +286,8 @@ class Table extends Module {
     // check whether to insert a empty line before the new table
     if (
       (!currentLine.prev && offset === 0) ||
-      (currentLine && offset !== 0)
+      (currentLine && offset !== 0) ||
+      (offset === 0 && currentLine.prev && currentLine.prev.statics.blotName === TableView.blotName)
     ) {
       delta.insert('\n')
     }
@@ -305,7 +306,11 @@ class Table extends Module {
     }, delta)
 
     // check whether to remove a empty line after the new table
-    if (currentLine.next && offset === 0) {
+    if (
+      offset === 0 &&
+      currentLine.next &&
+      currentLine.next.statics.blotName !== TableView.blotName
+    ) {
       delta.delete(1)
     }
 
