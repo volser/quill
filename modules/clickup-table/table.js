@@ -78,37 +78,6 @@ class Table extends Module {
         ) {
           this.quill.setSelection(range.index, range.length - 1, Quill.sources.SILENT);
         }
-      } else if (lines.length > 1) { // reset selection to prevent highlighting(selecting) multiple table cells
-        const firstLine = lines[0]
-        const firstLineFormats = firstLine.formats()
-        const lastLine = lines[lines.length - 1]
-        const lastLineFormats = lastLine.formats()
-        
-        if (
-          firstLineFormats[firstLine.statics.blotName] &&
-          lastLineFormats[lastLine.statics.blotName] &&
-          firstLineFormats[firstLine.statics.blotName].cell &&
-          lastLineFormats[lastLine.statics.blotName].cell &&
-          (firstLineFormats[firstLine.statics.blotName].row !== lastLineFormats[lastLine.statics.blotName].row ||
-          firstLineFormats[firstLine.statics.blotName].cell !== lastLineFormats[lastLine.statics.blotName].cell)
-        ) {
-          let tableView = null
-          let parent = firstLine.parent
-          while (parent) {
-            if (parent instanceof TableView) {
-              tableView = parent
-              parent = null
-            } else if (parent instanceof ScrollBlot) {
-              parent = null
-            } else {
-              parent = parent.parent
-            }
-          }
-          if (tableView) {
-            const tableViewStartIndex = this.quill.getIndex(tableView)
-            this.quill.setSelection(tableViewStartIndex, tableView.length(), Quill.sources.SILENT);
-          }
-        }
       }
 
       // hide table tools when the cursor go out of the table
