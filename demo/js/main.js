@@ -46,7 +46,8 @@ window.onload = () => {
           zIndex: 100
         }
       },
-      storage: true
+      storage: true,
+      syntax: true
     }
   })
 
@@ -93,5 +94,45 @@ window.onload = () => {
         new Delta().retain(index - 1).insert('\n', lineFormats).concat(tableDeltaParser(oldTableDelta3).delete(1).insert('\n')),
         Quill.sources.USER
       )
+    }, false)
+
+  document.querySelector('#insert-quote')
+    .addEventListener('click', () => {
+      const range = quill.getSelection()
+      const [line, offset] = quill.getLine(range.index)
+      const lineFormats = line.formats()
+      
+      if (
+        line.statics.blotName === 'list'
+      ) {
+        quill.format('blockquote', {
+          ...lineFormats.list,
+          'wrapper-indent': lineFormats.indent,
+          'in-list': lineFormats.list.list,
+        })
+        quill.format('indent', false)
+      } else {
+        quill.format('blockquote', {})
+      }
+    }, false)
+
+  document.querySelector('#insert-code')
+    .addEventListener('click', () => {
+      const range = quill.getSelection()
+      const [line, offset] = quill.getLine(range.index)
+      const lineFormats = line.formats()
+      
+      if (
+        line.statics.blotName === 'list'
+      ) {
+        quill.format('code-block', {
+          ...lineFormats.list,
+          'wrapper-indent': lineFormats.indent,
+          'in-list': lineFormats.list.list,
+        })
+        quill.format('indent', false)
+      } else {
+        quill.format('code-block', {})
+      }
     }, false)
 }

@@ -245,11 +245,19 @@ function convertListHTML(items, lastIndent, types) {
   if (indent > lastIndent) {
     types.push(type);
     if (indent === lastIndent + 1) {
-      return `<${tag}><li${attribute}>${convertHTML(
-        child,
-        offset,
-        length,
-      )}${convertListHTML(rest, indent, types)}`;
+      if (child.statics.blotName === 'list-block-wrapper') {
+        return `<${tag}>${convertHTML(
+          child,
+          offset,
+          length,
+        )}${convertListHTML(rest, indent, types)}`;
+      } else {
+        return `<${tag}><li${attribute}>${convertHTML(
+          child,
+          offset,
+          length,
+        )}${convertListHTML(rest, indent, types)}`;
+      }
     }
     return `<${tag}><li>${convertListHTML(items, lastIndent + 1, types)}`;
   }
@@ -277,7 +285,7 @@ function convertHTML(blot, index, length, isRoot = false) {
     if (blot.statics.blotName === 'list-container') {
       const items = [];
       blot.children.forEachAt(index, length, (child, offset, childLength) => {
-        const formats = child.formats();
+        const formats = child.listFormats();
         items.push({
           child,
           offset,

@@ -11,6 +11,7 @@ import {
   TableContainer,
   TableView,
   ListItem,
+  ListBlockWrapper,
   ListContainer,
   rowId,
   cellId
@@ -41,7 +42,8 @@ class Table extends Module {
     // List must be registered in TableModule
     // or TDZ references error
     Quill.register(ListItem, true);
-    Quill.register(ListContainer, true)
+    Quill.register(ListBlockWrapper, true);
+    Quill.register(ListContainer, true);
   }
 
   constructor(quill, options) {
