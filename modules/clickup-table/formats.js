@@ -1100,10 +1100,8 @@ class ListItem extends Block {
     const parents = this.getToggleParents()
     const isExpanded = parents.every(parent => {
       return parent.domNode.getAttribute('data-list-toggle') ||
-        (
-          parent.formats() && parent.formats().list &&
-          parent.formats().list.list !== 'toggled'
-        )
+        !parent.isToggleListItem ||
+        !parent.isToggleListItem()
     })
 
     css(this.domNode, {
