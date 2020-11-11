@@ -1150,6 +1150,13 @@ ListItem.tagName = 'LI';
 ListItem.DEFAULT_TOGGLE_PLACEHOLDER = 'Empty. Click or drag text/images inside'
 
 class ListBlockWrapper extends Container {
+  checkMerge() {
+    if (super.checkMerge() && this.next.children.head != null) {
+      return this.children.head.statics.blotName === this.next.children.head.statics.blotName;
+    }
+    return false
+  }
+
   static create(value) {
     const node = super.create(value)
 
