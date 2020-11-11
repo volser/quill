@@ -1285,6 +1285,10 @@ class ListBlockWrapper extends Container {
   }
 
   optimize(context) {
+    // if has different children, unwrap.
+    const hasDifferentChildren = this.children
+      .map(child => child.statics.blotName === this.children.head.statics.blotName)
+      .some(item => !item)
     const { row, cell, rowspan, colspan } = this.listFormats()
     if (this.statics.requiredContainer &&
       !(this.parent instanceof this.statics.requiredContainer)) {
@@ -1294,6 +1298,8 @@ class ListBlockWrapper extends Container {
         colspan,
         rowspan
       })
+    } else if (hasDifferentChildren) {
+      this.unwrap();
     }
 
     // set own visibility

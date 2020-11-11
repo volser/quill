@@ -121,7 +121,7 @@ window.onload = () => {
       const range = quill.getSelection()
       const [line, offset] = quill.getLine(range.index)
       const lineFormats = line.formats()
-      
+
       if (
         line.statics.blotName === 'list'
       ) {
@@ -131,6 +131,13 @@ window.onload = () => {
           'in-list': lineFormats.list.list,
         })
         quill.format('indent', false)
+      } else if (
+        lineFormats[line.statics.blotName] &&
+        lineFormats[line.statics.blotName]['in-list']
+      ) {
+        quill.format('code-block', {
+          ...lineFormats[line.statics.blotName]
+        })
       } else {
         quill.format('code-block', {})
       }
