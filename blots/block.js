@@ -1,4 +1,6 @@
+import Quill from '../core/quill';
 import extend from 'extend';
+import { v4 as uuid } from 'uuid';
 import Delta from 'quill-delta';
 import {
   AttributorStore,
@@ -10,6 +12,7 @@ import {
 import Break from './break';
 import Inline from './inline';
 import TextBlot from './text';
+import { BlockIdentityAttribute } from '../formats/block-id';
 
 const NEWLINE_LENGTH = 1;
 
@@ -17,6 +20,22 @@ class Block extends BlockBlot {
   constructor(scroll, domNode) {
     super(scroll, domNode);
     this.cache = {};
+
+    setTimeout(() => {
+      const quill = Quill.find(scroll.domNode.parentNode);
+      const thisIndex = quill.getIndex(this);
+      if (thisIndex >= 0) {
+        const formats = quill.getFormat(thisIndex, this.length());
+        if (!formats || !formats[BlockIdentityAttribute.attrName]) {
+          quill.formatLine(
+            thisIndex,
+            this.length(),
+            BlockIdentityAttribute.attrName,
+            `block-${uuid()}`
+          );
+        }
+      }
+    }, 0)
   }
 
   delta() {
