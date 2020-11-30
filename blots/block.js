@@ -22,20 +22,22 @@ class Block extends BlockBlot {
     this.cache = {};
 
     setTimeout(() => {
-      const quill = Quill.find(scroll.domNode.parentNode);
-      const thisIndex = quill.getIndex(this);
-      if (thisIndex >= 0) {
-        const formats = quill.getFormat(thisIndex, this.length());
-        if (!formats || !formats[BlockIdentityAttribute.attrName]) {
-          quill.formatLine(
-            thisIndex,
-            this.length(),
-            BlockIdentityAttribute.attrName,
-            `block-${uuid()}`
-          );
+      if (scroll.domNode) {
+        const quill = Quill.find(scroll.domNode.parentNode);
+        const thisIndex = quill.getIndex(this);
+        if (quill && thisIndex >= 0) {
+          const formats = quill.getFormat(thisIndex, this.length());
+          if (!formats || !formats[BlockIdentityAttribute.attrName]) {
+            quill.formatLine(
+              thisIndex,
+              this.length(),
+              BlockIdentityAttribute.attrName,
+              `block-${uuid()}`
+            );
+          }
         }
-      }
-    }, 0)
+      }  
+    }, 0);
   }
 
   delta() {

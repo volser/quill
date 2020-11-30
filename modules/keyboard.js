@@ -6,6 +6,7 @@ import { EmbedBlot, Scope, TextBlot } from 'parchment';
 import Quill from '../core/quill';
 import logger from '../core/logger';
 import Module from '../core/module';
+import { v4 as uuid } from 'uuid';
 
 const debug = logger('quill:keyboard');
 
@@ -286,7 +287,12 @@ class Keyboard extends Module {
     const delta = new Delta()
       .retain(range.index)
       .delete(range.length)
-      .insert('\n', lineFormats);
+      .insert('\n', lineFormats)
+      .retain(context.line.length() - context.offset - 1)
+      .retain(1, {
+        ...lineFormats,
+        'block-id': `block-${uuid()}`
+      })
     this.quill.updateContents(delta, Quill.sources.USER);
     this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
     this.quill.focus();
@@ -462,131 +468,7 @@ Keyboard.DEFAULTS = {
         this.quill.scrollIntoView();
       },
     },
-    // clickup: togglelist enter
-    'togglelist enter': {
-      key: 'Enter',
-      format: ['list'],
-      handler(range) {
-        const [line, offset] = this.quill.getLine(range.index);
-        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
-        const lineFormats = line.formats()
-        if (
-          line.statics.blotName === 'list' &&
-          line.isToggleListItem()
-        ) {
-          if (line.isThisItemExpanded()) {
-            const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
-            const newLineFormats = {
-              ...lineFormats,
-              indent: newLineIndent,
-              list: Object.assign(
-                {},
-                lineFormats.list,
-                {
-                  list: 'none',
-                  'toggle-id': toggleListId()
-                }
-              )
-            }
 
-            const delta = new Delta()
-              .retain(range.index)
-              .delete(range.length)
-              .insert('\n', lineFormats)
-              .retain(lastLine.length() - lastlineOffset - 1)
-              .retain(1, newLineFormats);
-
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
-            this.quill.focus();
-          } else {
-            let updates = new Delta()
-            if (line === lastLine) {
-              const childItems = lastLine.getToggleListItemChildren()
-              const skipLength = childItems.reduce((len, childItem) => {
-                len = len + childItem.length()
-                return len
-              }, 0)
-
-              updates = new Delta()
-                .retain(range.index)
-                .delete(range.length)
-                .retain(lastLine.length() - lastlineOffset + skipLength)
-                .insert('\n', Object.assign(
-                  {},
-                  lineFormats,
-                  {
-                    list: Object.assign(
-                      {},
-                      lineFormats.list,
-                      { 'toggle-id': toggleListId() }
-                    )
-                  }
-                ))
-
-              this.quill.updateContents(updates, Quill.sources.USER);
-              this.quill.setSelection(range.index + skipLength + 1, Quill.sources.SILENT);
-              this.quill.scrollIntoView();
-            } else {
-              return true
-            }
-          }
-        } else {
-          return true
-        }
-      },
-    },
-
-    'togglelist shift enter': {
-      key: 'Enter',
-      shiftKey: true,
-      format: ['list'],
-      handler(range) {
-        const [line, offset] = this.quill.getLine(range.index);
-        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
-        const lineFormats = line.formats()
-        if (
-          line.statics.blotName === 'list' &&
-          line.isToggleListItem()
-        ) {
-          const storageModule = this.quill.getModule('storage')
-          if (!line.isThisItemExpanded()) {
-            line.expandItem()
-            if (storageModule) {
-              storageModule.addExpandedToggleList(lineFormats.list['toggle-id'])
-            }
-          }
-
-          const newLineIndent = lineFormats.indent ? (lineFormats.indent + 1 ): 1
-          const newLineFormats = {
-            ...lineFormats,
-            indent: newLineIndent,
-            list: Object.assign(
-              {},
-              lineFormats.list,
-              {
-                list: 'none'
-              }
-            )
-          }
-
-          const delta = new Delta()
-            .retain(range.index)
-            .delete(range.length)
-            .insert('\n', lineFormats)
-            .retain(lastLine.length() - lastlineOffset - 1)
-            .retain(1, newLineFormats);
-
-          this.quill.updateContents(delta, Quill.sources.USER);
-          this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
-          this.quill.focus();
-        } else {
-          return true
-        }
-      },
-    },
-
-    // must placed below 'togglelist shift enter',
     // togglelist shift enter should be triggerred before here.
     'list shift enter': {
       key: 'Enter',
@@ -624,62 +506,6 @@ Keyboard.DEFAULTS = {
           this.quill.focus();
         } else {
           return true
-        }
-      }
-    },
-
-    'none type list enter': {
-      key: 'Enter',
-      format: ['list'],
-      handler(range, context) {
-        const [line, offset] = this.quill.getLine(range.index);
-        const lineFormats = line.formats()
-        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
-        if (
-          lineFormats.list &&
-          lineFormats.list.list === 'none'
-        ) {
-          let targetListItem = line.prev;
-          let targetFormats = null;
-          while (targetListItem) {
-            if (targetListItem.statics.blotName === 'list') {
-              const curFormats = targetListItem.formats();
-              if (curFormats.list.list !== 'none') {
-                targetFormats = curFormats;
-                targetListItem = null
-              } else {
-                targetListItem = targetListItem.prev;
-              }
-            } else {
-              targetListItem = targetListItem.prev;
-            }
-          }
-
-          if (targetFormats) {
-            const newLineFormats = {
-              ...lineFormats,
-              indent: targetFormats.indent || 0,
-              list: Object.assign(
-                {},
-                lineFormats.list,
-                { list: targetFormats.list.list }
-              )
-            }
-
-            const delta = new Delta()
-              .retain(range.index)
-              .delete(range.length)
-              .insert('\n', lineFormats)
-              .retain(lastLine.length() - lastlineOffset - 1)
-              .retain(1, newLineFormats);
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
-            this.quill.focus();
-          } else {
-            return true;
-          }
-        } else {
-          return true;
         }
       }
     },
