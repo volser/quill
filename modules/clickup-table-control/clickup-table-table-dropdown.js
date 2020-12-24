@@ -87,5 +87,21 @@ TableTableDropdown.defaults = {
       tableModule.hideTableTools()
       tableContainer.remove()
     }
+  },
+  'copyTable': {
+    text: 'Copy Table',
+    handler(e) {
+      const tableContainer = Quill.find(this.table)
+      const tableIndex = this.quill.getIndex(tableContainer);
+      this.quill.setSelection(
+        tableIndex,
+        tableContainer.length(),
+        Quill.sources.SILENT
+      );
+      if (document.execCommand('copy')) {
+        document.execCommand('copy');
+      }
+      this.quill.setSelection(tableIndex, 0, Quill.sources.SILENT);
+    }
   }
 }
