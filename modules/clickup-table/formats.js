@@ -123,7 +123,11 @@ TableCellLine.tagName = "DIV"
 
 class TableCell extends Container {
   checkMerge() {
-    if (super.checkMerge() && this.next.children.head != null) {
+    if (
+      super.checkMerge() &&
+      this.next.children.head != null &&
+      typeof this.next.children.head.formats === 'function'
+    ) {
       const thisHead = this.children.head.formats()[this.children.head.statics.blotName] ||
         this.children.head.formats()
       const thisTail = this.children.tail.formats()[this.children.tail.statics.blotName] ||
