@@ -100,6 +100,7 @@ class TableCellLine extends Block {
         rowspan
       })
     } else if (
+      this.statics.requiredContainer &&
       this.parent instanceof this.statics.requiredContainer &&
       this.parent.formats().cell !== cellId
     ) {
@@ -779,6 +780,18 @@ class ListContainer extends Container {
         colspan,
         rowspan
       })
+    } else if (
+      this.parent instanceof TableCell
+    ) {
+      const hasDifferentCellChildren = this.children
+        .map(child => {
+          const childFormats = (typeof child.listFormats === 'function' ? child.listFormats() : child.formats()) || {}
+          return cell === (childFormats['list'] && childFormats['list'].cell)
+        })
+        .some(item => !item)
+      if (hasDifferentCellChildren) {
+        this.unwrap();
+      }
     }
 
     super.optimize(context)
@@ -914,14 +927,7 @@ class ListItem extends Block {
     if (name === ListItem.blotName) {
       if (value) {
         if (typeof value === 'object') {
-          super.format(name, {
-            list: value.list,
-            row,
-            cell,
-            rowspan,
-            colspan,
-            'toggle-id': value['toggle-id']
-          })
+          this.replaceWith(ListItem.blotName, value);
         } else {
           super.format(name, {
             list: value,
