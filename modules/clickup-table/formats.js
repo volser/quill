@@ -422,7 +422,7 @@ class TableContainer extends Container {
     })
 
     setTimeout(() => {
-      this.rebuildWholeTable()
+      // this.rebuildWholeTable()
       this.updateTableWidth()
     }, 0)
   }
