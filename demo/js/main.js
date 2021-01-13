@@ -13,7 +13,7 @@ const testDelta3 = new Delta(
 
 const toolbarOptions = [
   ['bold', 'italic', 'underline', 'strike', 'link'],        // toggled buttons
-  ['blockquote', 'code-block'],
+  ['blockquote', 'code-block', ['formula']],
 
   [{ 'header': 1 }, { 'header': 2 }],               // custom button values
   [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'unchecked' }, { 'list': 'toggled' }, { 'list': 'none' }],
@@ -47,7 +47,7 @@ window.onload = () => {
         }
       },
       storage: true,
-      syntax: true
+      syntax: true,
     }
   })
 
@@ -66,6 +66,11 @@ window.onload = () => {
 
   quill.on('text-change', (newDelta, oldContents, source) => {
     console.log(newDelta)
+  })
+
+  quill.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
+    console.log(delta);
+    return delta
   })
 
   window.quill = quill
@@ -141,5 +146,13 @@ window.onload = () => {
       } else {
         quill.format('code-block', {})
       }
+    }, false)
+
+  document.getElementById('insert-formula')
+    .addEventListener('click', () => {
+      const range = quill.getSelection()
+      const [line, offset] = quill.getLine(range.index)
+      const lineFormats = line.formats()
+      quill.insertEmbed(range.index, 'formula', 'e=mc^2', 'user')
     }, false)
 }
