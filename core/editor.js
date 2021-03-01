@@ -246,11 +246,11 @@ function convertListHTML(items, lastIndent, types) {
     types.push(type);
     if (indent === lastIndent + 1) {
       if (child.statics.blotName === 'list-block-wrapper') {
-        return `<${tag}>${convertHTML(
-          child,
-          offset,
-          length,
-        )}${convertListHTML(rest, indent, types)}`;
+        return `<${tag}>${convertHTML(child, offset, length)}${convertListHTML(
+          rest,
+          indent,
+          types,
+        )}`;
       } else {
         return `<${tag}><li${attribute}>${convertHTML(
           child,
@@ -332,9 +332,7 @@ function combineFormats(formats, combined) {
 
 function getListType(type) {
   // clickup: Since the data structure of List changed.
-  type = typeof type === 'string'
-    ? type
-    : type.list
+  type = typeof type === 'string' ? type : type.list;
 
   const tag = type === 'ordered' ? 'ol' : 'ul';
   switch (type) {

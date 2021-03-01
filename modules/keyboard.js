@@ -13,13 +13,13 @@ const debug = logger('quill:keyboard');
 const SHORTKEY = /Mac/i.test(navigator.platform) ? 'metaKey' : 'ctrlKey';
 
 // clickup: define tableCellAllowedBlotName
-const tableCellAllowedBlotName = ['table-cell-line', 'list', 'list-container']
+const tableCellAllowedBlotName = ['table-cell-line', 'list', 'list-container'];
 
 function toggleListId() {
   const id = Math.random()
     .toString(36)
-    .slice(2, 8)
-  return `list-${id}`
+    .slice(2, 8);
+  return `list-${id}`;
 }
 
 class Keyboard extends Module {
@@ -199,9 +199,8 @@ class Keyboard extends Module {
     const [prev] = this.quill.getLine(range.index - 1);
 
     if (context.offset === 0 && prev != null) {
-      if (isTheLineInATableCell(prev) &&
-        !isTheLineInATableCell(line)
-      ) return false
+      if (isTheLineInATableCell(prev) && !isTheLineInATableCell(line))
+        return false;
     }
 
     // Check for astral symbols
@@ -291,8 +290,8 @@ class Keyboard extends Module {
       .retain(context.line.length() - context.offset - 1)
       .retain(1, {
         ...lineFormats,
-        'block-id': `block-${uuid()}`
-      })
+        'block-id': `block-${uuid()}`,
+      });
     this.quill.updateContents(delta, Quill.sources.USER);
     this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
     this.quill.focus();
@@ -366,8 +365,11 @@ Keyboard.DEFAULTS = {
         // clickup: return true if the cursor is in a table cell line
         if (
           context.format['table-cell-line'] ||
-          (context.format['list'] && context.format['cell'] && context.format['row'])
-        ) return true
+          (context.format['list'] &&
+            context.format['cell'] &&
+            context.format['row'])
+        )
+          return true;
         if (context.format.table) return true;
         this.quill.history.cutoff();
         const delta = new Delta()
@@ -397,11 +399,8 @@ Keyboard.DEFAULTS = {
       handler(range, context) {
         // custom behaviour for none type list.
         const [line, offset] = this.quill.getLine(range.index);
-        const lineFormats = line.formats()
-        if (
-          lineFormats.list &&
-          lineFormats.list.list === 'none'
-        ) {
+        const lineFormats = line.formats();
+        if (lineFormats.list && lineFormats.list.list === 'none') {
           let targetListItem = line.prev;
           let targetFormats = null;
           while (targetListItem) {
@@ -409,7 +408,7 @@ Keyboard.DEFAULTS = {
               const curFormats = targetListItem.formats();
               if (curFormats.list.list !== 'none') {
                 targetFormats = curFormats;
-                targetListItem = null
+                targetListItem = null;
               } else {
                 targetListItem = targetListItem.prev;
               }
@@ -422,12 +421,10 @@ Keyboard.DEFAULTS = {
             const newLineFormats = {
               ...lineFormats,
               indent: targetFormats.indent || 0,
-              list: Object.assign(
-                {},
-                lineFormats.list,
-                { list: targetFormats.list.list }
-              )
-            }
+              list: Object.assign({}, lineFormats.list, {
+                list: targetFormats.list.list,
+              }),
+            };
 
             this.quill.formatLine(
               range.index,
@@ -476,38 +473,33 @@ Keyboard.DEFAULTS = {
       format: ['list'],
       handler(range) {
         const [line, offset] = this.quill.getLine(range.index);
-        const lineFormats = line.formats()
-        const [lastLine, lastlineOffset] = this.quill.getLine(range.index + range.length);
+        const lineFormats = line.formats();
+        const [lastLine, lastlineOffset] = this.quill.getLine(
+          range.index + range.length,
+        );
 
-        if (
-          lineFormats.list &&
-          lineFormats.list.list !== 'none'
-        ) {
-          const newLineIndent = lineFormats.indent ? (lineFormats.indent): 0
+        if (lineFormats.list && lineFormats.list.list !== 'none') {
+          const newLineIndent = lineFormats.indent ? lineFormats.indent : 0;
           const newLineFormats = {
             ...lineFormats,
             indent: newLineIndent,
-            list: Object.assign(
-              {},
-              lineFormats.list,
-              { list: 'none' }
-            )
-          }
+            list: Object.assign({}, lineFormats.list, { list: 'none' }),
+          };
 
           const delta = new Delta()
             .retain(range.index)
             .delete(range.length)
             .insert('\n', lineFormats)
             .retain(lastLine.length() - lastlineOffset - 1)
-            .retain(1, newLineFormats)
+            .retain(1, newLineFormats);
 
           this.quill.updateContents(delta, Quill.sources.USER);
           this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
           this.quill.focus();
         } else {
-          return true
+          return true;
         }
-      }
+      },
     },
 
     'header enter': {
@@ -590,8 +582,8 @@ Keyboard.DEFAULTS = {
       format: ['table-col'],
       collapsed: true,
       handler() {
-        return false
-      }
+        return false;
+      },
     },
 
     'table-cell-line backspace': {
@@ -600,14 +592,16 @@ Keyboard.DEFAULTS = {
       collapsed: true,
       offset: 0,
       handler(range, context) {
-        const [line, offset] = this.quill.getLine(range.index)
+        const [line, offset] = this.quill.getLine(range.index);
         if (
           line.prev &&
-          ['table-cell-line', 'list', 'list-container'].indexOf(line.prev.statics.blotName) >= 0
+          ['table-cell-line', 'list', 'list-container'].indexOf(
+            line.prev.statics.blotName,
+          ) >= 0
         ) {
-          return true
+          return true;
         }
-        return false
+        return false;
       },
     },
 
@@ -618,14 +612,16 @@ Keyboard.DEFAULTS = {
       collapsed: true,
       offset: 0,
       handler(range, context) {
-        const [line, offset] = this.quill.getLine(range.index)
+        const [line, offset] = this.quill.getLine(range.index);
         if (
           line.prev &&
-          ['table-cell-line', 'list', 'list-container'].indexOf(line.prev.statics.blotName) >= 0
+          ['table-cell-line', 'list', 'list-container'].indexOf(
+            line.prev.statics.blotName,
+          ) >= 0
         ) {
-          return true
+          return true;
         }
-        return false
+        return false;
       },
     },
 
@@ -644,16 +640,19 @@ Keyboard.DEFAULTS = {
       format: ['table-cell-line'],
       handler(range, context) {
         const { event, line: cellLine } = context;
-        const cellIndex = this.quill.getIndex(cellLine.parent)
-        event.preventDefault()
+        const cellIndex = this.quill.getIndex(cellLine.parent);
+        event.preventDefault();
 
         if (event.shiftKey) {
           this.quill.setSelection(cellIndex - 1, Quill.sources.USER);
         } else {
-          const tableCell = cellLine.parent
-          this.quill.setSelection(cellIndex + tableCell.length(), Quill.sources.USER);
+          const tableCell = cellLine.parent;
+          this.quill.setSelection(
+            cellIndex + tableCell.length(),
+            Quill.sources.USER,
+          );
         }
-        return false
+        return false;
       },
     },
 
@@ -663,19 +662,19 @@ Keyboard.DEFAULTS = {
       format: ['table-cell-line'],
       handler(range, context) {
         const { event, line: cellLine } = context;
-        const parentCell = cellLine.parent
-        event.preventDefault()
-        event.stopPropagation()
-        
+        const parentCell = cellLine.parent;
+        event.preventDefault();
+        event.stopPropagation();
+
         this.quill.setSelection(
           this.quill.getIndex(parentCell),
           parentCell.length() - 1,
           Quill.sources.USER,
-          false
-        )
-        
-        return false
-      }
+          false,
+        );
+
+        return false;
+      },
     },
 
     'list table tab': {
@@ -685,17 +684,20 @@ Keyboard.DEFAULTS = {
       format: ['list', 'cell', 'row'],
       handler(range, context) {
         const { event, line: listItem } = context;
-        const listContainer = listItem.parent
-        const parentCell = listContainer.parent
-        const cellIndex = this.quill.getIndex(parentCell)
-        event.preventDefault()
+        const listContainer = listItem.parent;
+        const parentCell = listContainer.parent;
+        const cellIndex = this.quill.getIndex(parentCell);
+        event.preventDefault();
 
         if (event.shiftKey) {
           this.quill.setSelection(cellIndex - 1, Quill.sources.USER);
         } else {
-          this.quill.setSelection(cellIndex + parentCell.length(), Quill.sources.USER);
+          this.quill.setSelection(
+            cellIndex + parentCell.length(),
+            Quill.sources.USER,
+          );
         }
-        return false
+        return false;
       },
     },
 
@@ -706,15 +708,15 @@ Keyboard.DEFAULTS = {
       format: ['list', 'cell', 'row'],
       handler(range, context) {
         const { event, line: listLine } = context;
-        const parentCell = listLine.parent.parent
-        
+        const parentCell = listLine.parent.parent;
+
         this.quill.setSelection(
           this.quill.getIndex(parentCell),
           parentCell.length() - 1,
-          Quill.sources.SILENT
-        )
-        return false
-      }
+          Quill.sources.SILENT,
+        );
+        return false;
+      },
     },
 
     'list autofill': {
@@ -801,7 +803,7 @@ Keyboard.DEFAULTS = {
     'table-cell-line down': makeTableArrowHandler(false),
     'table-cell-line up': makeTableArrowHandler(true),
     'list table down': makeTableListArrowHandler(false),
-    'list table up': makeTableListArrowHandler(true)
+    'list table up': makeTableListArrowHandler(true),
   },
 };
 
@@ -892,8 +894,8 @@ function makeFormatHandler(format) {
 }
 
 function isMentionsDropDownOpened(quill) {
-  const mentions = quill.getModule('mentions')
-  return mentions && mentions.dialogShown
+  const mentions = quill.getModule('mentions');
+  return mentions && mentions.dialogShown;
 }
 
 function makeTableArrowHandler(up) {
@@ -903,7 +905,7 @@ function makeTableArrowHandler(up) {
     format: ['table-cell-line'],
     handler(range, context) {
       if (isMentionsDropDownOpened(this.quill)) {
-        return true
+        return true;
       }
 
       const key = up ? 'prev' : 'next';
@@ -911,29 +913,41 @@ function makeTableArrowHandler(up) {
       let targetBlot = cellLine[key];
 
       if (targetBlot) {
-        return true
+        return true;
       } else {
-        const curCell = cellLine.parent
-        const curRow = curCell.parent
-        const curCellIndex = curRow.children.indexOf(curCell)
-        const targetRow = curRow[key]
+        const curCell = cellLine.parent;
+        const curRow = curCell.parent;
+        const curCellIndex = curRow.children.indexOf(curCell);
+        const targetRow = curRow[key];
         if (targetRow !== null) {
           if (targetRow.statics.blotName === 'table-row') {
-            const targetCell = targetRow.children.at(curCellIndex)
-            const targetCellIndex = this.quill.getIndex(targetCell)
+            const targetCell = targetRow.children.at(curCellIndex);
+            const targetCellIndex = this.quill.getIndex(targetCell);
             if (up) {
-              this.quill.setSelection(targetCellIndex + targetCell.length() - 1, 0, Quill.sources.USER)
+              this.quill.setSelection(
+                targetCellIndex + targetCell.length() - 1,
+                0,
+                Quill.sources.USER,
+              );
             } else {
-              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER)
+              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER);
             }
           }
         } else {
-          const curTableView = curCell.table().parent
-          const curTableViewStartIndex = this.quill.getIndex(curTableView)
+          const curTableView = curCell.table().parent;
+          const curTableViewStartIndex = this.quill.getIndex(curTableView);
           if (up) {
-            this.quill.setSelection(curTableViewStartIndex - 1, 0, Quill.sources.USER)
+            this.quill.setSelection(
+              curTableViewStartIndex - 1,
+              0,
+              Quill.sources.USER,
+            );
           } else {
-            this.quill.setSelection(curTableViewStartIndex + curTableView.length(), 0, Quill.sources.USER)
+            this.quill.setSelection(
+              curTableViewStartIndex + curTableView.length(),
+              0,
+              Quill.sources.USER,
+            );
           }
         }
       }
@@ -948,43 +962,55 @@ function makeTableListArrowHandler(up) {
     collapsed: true,
     format: ['list'],
     handler(range, context) {
-      const { row, cell } = context.format.list
+      const { row, cell } = context.format.list;
       if (!row || !cell) {
-        return true
+        return true;
       }
 
       if (isMentionsDropDownOpened(this.quill)) {
-        return true
+        return true;
       }
 
       const key = up ? 'prev' : 'next';
       const listItem = context.line;
-      const listContainer = listItem.parent
+      const listContainer = listItem.parent;
       let targetBlot = listItem[key];
       if (targetBlot || listContainer[key]) {
-        return true
+        return true;
       } else {
-        const curCell = listContainer.parent
-        const curRow = curCell.parent
-        const curCellIndex = curRow.children.indexOf(curCell)
-        const targetRow = curRow[key]
+        const curCell = listContainer.parent;
+        const curRow = curCell.parent;
+        const curCellIndex = curRow.children.indexOf(curCell);
+        const targetRow = curRow[key];
         if (targetRow !== null) {
           if (targetRow.statics.blotName === 'table-row') {
-            const targetCell = targetRow.children.at(curCellIndex)
-            const targetCellIndex = this.quill.getIndex(targetCell)
+            const targetCell = targetRow.children.at(curCellIndex);
+            const targetCellIndex = this.quill.getIndex(targetCell);
             if (up) {
-              this.quill.setSelection(targetCellIndex + targetCell.length() - 1, 0, Quill.sources.USER)
+              this.quill.setSelection(
+                targetCellIndex + targetCell.length() - 1,
+                0,
+                Quill.sources.USER,
+              );
             } else {
-              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER)
+              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER);
             }
           }
         } else {
-          const curTableView = curCell.table().parent
-          const curTableViewStartIndex = this.quill.getIndex(curTableView)
+          const curTableView = curCell.table().parent;
+          const curTableViewStartIndex = this.quill.getIndex(curTableView);
           if (up) {
-            this.quill.setSelection(curTableViewStartIndex - 1, 0, Quill.sources.USER)
+            this.quill.setSelection(
+              curTableViewStartIndex - 1,
+              0,
+              Quill.sources.USER,
+            );
           } else {
-            this.quill.setSelection(curTableViewStartIndex + curTableView.length(), 0, Quill.sources.USER)
+            this.quill.setSelection(
+              curTableViewStartIndex + curTableView.length(),
+              0,
+              Quill.sources.USER,
+            );
           }
         }
       }
@@ -1025,12 +1051,10 @@ function tableSide(table, row, cell, offset) {
 }
 
 // table-cell-line, listItem in table
-function isTheLineInATableCell (line) {
-  const key = line.statics.blotName
-  const formats = line.formats()
-  return !!formats &&
-    formats[key] &&
-    !!formats[key].cell
+function isTheLineInATableCell(line) {
+  const key = line.statics.blotName;
+  const formats = line.formats();
+  return !!formats && formats[key] && !!formats[key].cell;
 }
 
 export { Keyboard as default, SHORTKEY, normalize };

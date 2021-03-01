@@ -439,7 +439,7 @@ function matchIndent(node, delta, scroll) {
 // clickup: modify the matcher of list
 function matchList(node, delta) {
   const list = node.tagName === 'OL' ? 'ordered' : 'bullet';
-  
+
   return delta.reduce((newDelta, op) => {
     if (op.attributes && op.attributes['list']) {
       newDelta.insert(
@@ -447,9 +447,7 @@ function matchList(node, delta) {
         Object.assign(
           {},
           _omit(op.attributes, ['list-container']),
-          op.attributes['list']['list']
-            ? {}
-            : { list: { list } }
+          op.attributes['list']['list'] ? {} : { list: { list } },
         ),
       );
     } else {

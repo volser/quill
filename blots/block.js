@@ -32,11 +32,11 @@ class Block extends BlockBlot {
               thisIndex,
               this.length(),
               BlockIdentityAttribute.attrName,
-              `block-${uuid()}`
+              `block-${uuid()}`,
             );
           }
         }
-      }  
+      }
     }, 0);
   }
 

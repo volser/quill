@@ -6,17 +6,13 @@ import {
   DirectionClass,
   DirectionStyle,
 } from './formats/direction';
-import {
-  voidDetectAttribute
-} from './formats/void-detect.js';
-import {
-  BlockIdentityAttribute
-} from './formats/block-id';
+import { voidDetectAttribute } from './formats/void-detect.js';
+import { BlockIdentityAttribute } from './formats/block-id';
 import Indent from './formats/indent';
 
 import Blockquote from './formats/blockquote';
 import Header from './formats/header';
-// clickup: remove 
+// clickup: remove
 // import List from './modules/clickup-list/list';
 
 import { BackgroundClass, BackgroundStyle } from './formats/background';
