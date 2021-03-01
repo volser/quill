@@ -1,5 +1,5 @@
-import Quill from '../../quill';
 import Delta from 'quill-delta';
+import Quill from '../../quill';
 import { _omit } from './utils';
 import { rowId, cellId } from './table';
 import { TableCellLine } from './formats';
@@ -35,7 +35,7 @@ export function matchTableCell(node, delta, scroll) {
   delta = delta.reduce((newDelta, op) => {
     if (op.insert && typeof op.insert === 'string') {
       const lines = [];
-      let insertStr = op.insert;
+      const insertStr = op.insert;
       let start = 0;
       for (let i = 0; i < op.insert.length; i++) {
         if (insertStr.charAt(i) === '\n') {
@@ -78,7 +78,7 @@ export function matchTableCell(node, delta, scroll) {
       typeof op.insert === 'string' &&
       op.insert.startsWith('\n')
     ) {
-      let blotAttributes = op.attributes.list
+      const blotAttributes = op.attributes.list
         ? {
             list: Object.assign(
               {},
@@ -147,7 +147,7 @@ export function matchTableHeader(node, delta, scroll) {
   delta = delta.reduce((newDelta, op) => {
     if (op.insert && typeof op.insert === 'string') {
       const lines = [];
-      let insertStr = op.insert;
+      const insertStr = op.insert;
       let start = 0;
       for (let i = 0; i < op.insert.length; i++) {
         if (insertStr.charAt(i) === '\n') {
@@ -208,7 +208,7 @@ export function matchTableHeader(node, delta, scroll) {
 }
 
 export function matchTable(node, delta, scroll) {
-  let newColDelta = new Delta();
+  const newColDelta = new Delta();
   const topRow = node.querySelector('tr');
 
   // bugfix: empty table will return empty delta
@@ -246,7 +246,7 @@ export function matchTable(node, delta, scroll) {
   );
   const maxCellsNumber = cellsInTopRow.reduce((sum, cell) => {
     const cellColspan = cell.getAttribute('colspan') || 1;
-    sum = sum + parseInt(cellColspan, 10);
+    sum += parseInt(cellColspan, 10);
     return sum;
   }, 0);
   const colsNumber = node.querySelectorAll('col').length;
@@ -254,25 +254,24 @@ export function matchTable(node, delta, scroll) {
   //         add missing col tags
   if (colsNumber === maxCellsNumber) {
     return delta;
-  } else {
-    for (let i = 0; i < maxCellsNumber - colsNumber; i++) {
-      newColDelta.insert('\n', { 'table-col': true });
+  }
+  for (let i = 0; i < maxCellsNumber - colsNumber; i++) {
+    newColDelta.insert('\n', { 'table-col': true });
+  }
+
+  if (colsNumber === 0) return newColDelta.concat(delta);
+
+  let lastNumber = 0;
+  return delta.reduce((finalDelta, op) => {
+    finalDelta.insert(op.insert, op.attributes);
+
+    if (op.attributes && op.attributes['table-col']) {
+      lastNumber += op.insert.length;
+      if (lastNumber === colsNumber) {
+        finalDelta = finalDelta.concat(newColDelta);
+      }
     }
 
-    if (colsNumber === 0) return newColDelta.concat(delta);
-
-    let lastNumber = 0;
-    return delta.reduce((finalDelta, op) => {
-      finalDelta.insert(op.insert, op.attributes);
-
-      if (op.attributes && op.attributes['table-col']) {
-        lastNumber += op.insert.length;
-        if (lastNumber === colsNumber) {
-          finalDelta = finalDelta.concat(newColDelta);
-        }
-      }
-
-      return finalDelta;
-    }, new Delta());
-  }
+    return finalDelta;
+  }, new Delta());
 }

@@ -1,16 +1,17 @@
-import Quill from '../../core/quill';
 import { EmbedBlot } from 'parchment';
+import Quill from '../../core/quill';
 import Embed from '../../blots/embed';
 
 export const getDraggableRootBlot = (curBlot, node) => {
   let blotName;
   if (curBlot) {
     blotName = curBlot.statics.blotName;
-  } else {
-    if (node.classList.contains('ql-ui') && node.parentNode.tagName === 'LI') {
-      curBlot = Quill.find(node.parentNode, true);
-      blotName = curBlot.statics.blotName;
-    }
+  } else if (
+    node.classList.contains('ql-ui') &&
+    node.parentNode.tagName === 'LI'
+  ) {
+    curBlot = Quill.find(node.parentNode, true);
+    blotName = curBlot.statics.blotName;
   }
   if (!blotName) return null;
   switch (blotName) {
@@ -43,11 +44,12 @@ export const getDropableRootBlot = (curBlot, node) => {
   let blotName;
   if (curBlot) {
     blotName = curBlot.statics.blotName;
-  } else {
-    if (node.classList.contains('ql-ui') && node.parentNode.tagName === 'LI') {
-      curBlot = Quill.find(node.parentNode, true);
-      blotName = curBlot.statics.blotName;
-    }
+  } else if (
+    node.classList.contains('ql-ui') &&
+    node.parentNode.tagName === 'LI'
+  ) {
+    curBlot = Quill.find(node.parentNode, true);
+    blotName = curBlot.statics.blotName;
   }
   if (!blotName) return null;
   switch (blotName) {
@@ -80,7 +82,7 @@ export const isInlineRoot = blot => {
 
 export function css(domNode, rules) {
   if (typeof rules === 'object') {
-    for (let prop in rules) {
+    for (const prop in rules) {
       domNode.style[prop] = rules[prop];
     }
   }

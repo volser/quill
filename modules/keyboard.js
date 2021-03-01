@@ -3,10 +3,10 @@ import equal from 'deep-equal';
 import extend from 'extend';
 import Delta, { AttributeMap } from 'quill-delta';
 import { EmbedBlot, Scope, TextBlot } from 'parchment';
+import { v4 as uuid } from 'uuid';
 import Quill from '../core/quill';
 import logger from '../core/logger';
 import Module from '../core/module';
-import { v4 as uuid } from 'uuid';
 
 const debug = logger('quill:keyboard');
 
@@ -365,9 +365,7 @@ Keyboard.DEFAULTS = {
         // clickup: return true if the cursor is in a table cell line
         if (
           context.format['table-cell-line'] ||
-          (context.format['list'] &&
-            context.format['cell'] &&
-            context.format['row'])
+          (context.format.list && context.format.cell && context.format.row)
         )
           return true;
         if (context.format.table) return true;
@@ -910,47 +908,47 @@ function makeTableArrowHandler(up) {
 
       const key = up ? 'prev' : 'next';
       const cellLine = context.line;
-      let targetBlot = cellLine[key];
+      const targetBlot = cellLine[key];
 
       if (targetBlot) {
         return true;
-      } else {
-        const curCell = cellLine.parent;
-        const curRow = curCell.parent;
-        const curCellIndex = curRow.children.indexOf(curCell);
-        const targetRow = curRow[key];
-        if (targetRow !== null) {
-          if (targetRow.statics.blotName === 'table-row') {
-            const targetCell = targetRow.children.at(curCellIndex);
-            const targetCellIndex = this.quill.getIndex(targetCell);
-            if (up) {
-              this.quill.setSelection(
-                targetCellIndex + targetCell.length() - 1,
-                0,
-                Quill.sources.USER,
-              );
-            } else {
-              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER);
-            }
-          }
-        } else {
-          const curTableView = curCell.table().parent;
-          const curTableViewStartIndex = this.quill.getIndex(curTableView);
+      }
+      const curCell = cellLine.parent;
+      const curRow = curCell.parent;
+      const curCellIndex = curRow.children.indexOf(curCell);
+      const targetRow = curRow[key];
+      if (targetRow !== null) {
+        if (targetRow.statics.blotName === 'table-row') {
+          const targetCell = targetRow.children.at(curCellIndex);
+          const targetCellIndex = this.quill.getIndex(targetCell);
           if (up) {
             this.quill.setSelection(
-              curTableViewStartIndex - 1,
+              targetCellIndex + targetCell.length() - 1,
               0,
               Quill.sources.USER,
             );
           } else {
-            this.quill.setSelection(
-              curTableViewStartIndex + curTableView.length(),
-              0,
-              Quill.sources.USER,
-            );
+            this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER);
           }
         }
+      } else {
+        const curTableView = curCell.table().parent;
+        const curTableViewStartIndex = this.quill.getIndex(curTableView);
+        if (up) {
+          this.quill.setSelection(
+            curTableViewStartIndex - 1,
+            0,
+            Quill.sources.USER,
+          );
+        } else {
+          this.quill.setSelection(
+            curTableViewStartIndex + curTableView.length(),
+            0,
+            Quill.sources.USER,
+          );
+        }
       }
+
       return false;
     },
   };
@@ -974,46 +972,46 @@ function makeTableListArrowHandler(up) {
       const key = up ? 'prev' : 'next';
       const listItem = context.line;
       const listContainer = listItem.parent;
-      let targetBlot = listItem[key];
+      const targetBlot = listItem[key];
       if (targetBlot || listContainer[key]) {
         return true;
-      } else {
-        const curCell = listContainer.parent;
-        const curRow = curCell.parent;
-        const curCellIndex = curRow.children.indexOf(curCell);
-        const targetRow = curRow[key];
-        if (targetRow !== null) {
-          if (targetRow.statics.blotName === 'table-row') {
-            const targetCell = targetRow.children.at(curCellIndex);
-            const targetCellIndex = this.quill.getIndex(targetCell);
-            if (up) {
-              this.quill.setSelection(
-                targetCellIndex + targetCell.length() - 1,
-                0,
-                Quill.sources.USER,
-              );
-            } else {
-              this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER);
-            }
-          }
-        } else {
-          const curTableView = curCell.table().parent;
-          const curTableViewStartIndex = this.quill.getIndex(curTableView);
+      }
+      const curCell = listContainer.parent;
+      const curRow = curCell.parent;
+      const curCellIndex = curRow.children.indexOf(curCell);
+      const targetRow = curRow[key];
+      if (targetRow !== null) {
+        if (targetRow.statics.blotName === 'table-row') {
+          const targetCell = targetRow.children.at(curCellIndex);
+          const targetCellIndex = this.quill.getIndex(targetCell);
           if (up) {
             this.quill.setSelection(
-              curTableViewStartIndex - 1,
+              targetCellIndex + targetCell.length() - 1,
               0,
               Quill.sources.USER,
             );
           } else {
-            this.quill.setSelection(
-              curTableViewStartIndex + curTableView.length(),
-              0,
-              Quill.sources.USER,
-            );
+            this.quill.setSelection(targetCellIndex, 0, Quill.sources.USER);
           }
         }
+      } else {
+        const curTableView = curCell.table().parent;
+        const curTableViewStartIndex = this.quill.getIndex(curTableView);
+        if (up) {
+          this.quill.setSelection(
+            curTableViewStartIndex - 1,
+            0,
+            Quill.sources.USER,
+          );
+        } else {
+          this.quill.setSelection(
+            curTableViewStartIndex + curTableView.length(),
+            0,
+            Quill.sources.USER,
+          );
+        }
       }
+
       return false;
     },
   };

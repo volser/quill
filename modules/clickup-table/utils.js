@@ -56,9 +56,9 @@ export function tableDeltaParser(oldDelta) {
               if (prevOp.insert.indexOf('\n') >= 0) {
                 const linesArr = prevOp.insert.split('\n');
                 const lastLine = linesArr.pop();
-                newDelta.insert(linesArr.join('\n') + '\n', prevOp.attributes);
+                newDelta.insert(`${linesArr.join('\n')}\n`, prevOp.attributes);
 
-                if (!!lastLine) {
+                if (lastLine) {
                   reversedOpsInFirstCell.push({
                     insert: lastLine,
                     attributes: prevOp.attributes || {},
@@ -92,7 +92,7 @@ export function tableDeltaParser(oldDelta) {
         }
 
         const lines = [];
-        let insertStr = op.insert;
+        const insertStr = op.insert;
         let start = 0;
         for (let i = 0; i < op.insert.length; i++) {
           if (insertStr.charAt(i) === '\n') {
@@ -164,7 +164,7 @@ function scanTableColumnTokens(oldDelta) {
   return oldDelta.reduce((countMap, op) => {
     if (op.insert && typeof op.insert === 'string') {
       const lines = [];
-      let insertStr = op.insert;
+      const insertStr = op.insert;
       let start = 0;
       for (let i = 0; i < op.insert.length; i++) {
         if (insertStr.charAt(i) === '\n') {

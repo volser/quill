@@ -51,9 +51,9 @@ class Table extends Module {
 
     this.quill.on('text-change', range => {
       if (this.rowTool && this.table) {
-        let tableRect = this.rowTool.table.getBoundingClientRect();
-        let rowToolRect = this.rowTool.domNode.getBoundingClientRect();
-        let delta = tableRect.height - rowToolRect.height;
+        const tableRect = this.rowTool.table.getBoundingClientRect();
+        const rowToolRect = this.rowTool.domNode.getBoundingClientRect();
+        const delta = tableRect.height - rowToolRect.height;
         if (delta > 4 || delta < -4) {
           window.setTimeout(this.rowTool.updateToolCells(), 0);
         }
@@ -275,7 +275,8 @@ class Table extends Module {
       const row = cell.parent;
       const table = row.parent.parent;
       return [table, row, cell, offset];
-    } else if (
+    }
+    if (
       cellLine.statics.blotName === ListItem.blotName &&
       cellLine.parent &&
       cellLine.parent.parent &&
@@ -285,16 +286,15 @@ class Table extends Module {
       const row = cell.parent;
       const table = row.parent.parent;
       return [table, row, cell, offset];
-    } else {
-      return [null, null, null, -1];
     }
+    return [null, null, null, -1];
   }
 
   insertTable(rows, columns) {
     const range = this.quill.getSelection(true);
     const [currentLine, offset] = this.quill.getLine(range.index);
     if (range == null) return;
-    let currentBlot = this.quill.getLeaf(range.index)[0];
+    const currentBlot = this.quill.getLeaf(range.index)[0];
     let delta = new Delta().retain(range.index);
     // prevent insert table in a table cell
     if (isInTableCell(currentBlot)) {
@@ -319,7 +319,7 @@ class Table extends Module {
     }, delta);
     // insert table cell line with empty line
     delta = new Array(rows).fill(0).reduce(memo => {
-      let tableRowId = rowId();
+      const tableRowId = rowId();
       return new Array(columns).fill('\n').reduce((memo, text) => {
         memo.insert(text, {
           'table-cell-line': { row: tableRowId, cell: cellId() },

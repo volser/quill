@@ -15,7 +15,7 @@ import {
   CELL_ATTRIBUTES,
   ListBlockWrapper,
   SUPPORTED_LIST_TYPES,
-} from '../modules/clickup-table/formats';
+} from './clickup-table/formats';
 
 const IN_LIST = 'in-list';
 const WRAPPER_INDENT = 'wrapper-indent';

@@ -41,13 +41,13 @@ export class DragDropBlocks extends Module {
       'mousemove',
       evt => {
         if (this.dragging || !this.quill.getSelection()) return;
-        const target = evt.target;
+        const { target } = evt;
         const curBlot = Quill.find(target, true);
         const curRoot = this.getDraggableRootBlot(curBlot, target);
 
         if (curRoot && curRoot.statics.blotName === 'table-view') {
           const tableModule = this.quill.getModule('table');
-          if (!!tableModule.table) {
+          if (tableModule.table) {
             this.hideDraggableAnchor();
             return;
           }
@@ -107,20 +107,17 @@ export class DragDropBlocks extends Module {
             ) {
               this.dragOverPlaceholder.classList.add('allowed-active');
             }
-          } else {
-            if (
-              !this.dragOverPlaceholder.classList.contains('allowed-active') &&
-              !this.dragOverPlaceholder.classList.contains('not-allowed-active')
-            ) {
-              this.dragOverPlaceholder.classList.add('not-allowed-active');
-            }
+          } else if (
+            !this.dragOverPlaceholder.classList.contains('allowed-active') &&
+            !this.dragOverPlaceholder.classList.contains('not-allowed-active')
+          ) {
+            this.dragOverPlaceholder.classList.add('not-allowed-active');
           }
           this.dragOverRoot = null;
           this.dropRefRoot = null;
           return;
-        } else {
-          this.resetDragOverPlaceholder();
         }
+        this.resetDragOverPlaceholder();
 
         // dragging inline blot
         if (
@@ -141,7 +138,7 @@ export class DragDropBlocks extends Module {
         }
 
         // dragging block blot
-        const target = evt.target;
+        const { target } = evt;
         const overBlot = Quill.find(target, true);
         const dragOverRoot = this.getDropableRootBlot(overBlot, target);
         if (!dragOverRoot) return;
@@ -601,7 +598,7 @@ export class DragDropBlocks extends Module {
       ) {
         const draggingBlotsIndex = this.quill.getIndex(this.draggingBlots[0]);
         const draggingBlotsLength = this.draggingBlots.reduce((len, blot) => {
-          len = len + blot.length();
+          len += blot.length();
           return len;
         }, 0);
         const movedContent = this.quill.getContents(
@@ -672,7 +669,7 @@ export class DragDropBlocks extends Module {
       // reposition table tools
       setTimeout(() => {
         const tableModule = this.quill.getModule('table');
-        if (!!tableModule.table) {
+        if (tableModule.table) {
           tableModule.columnTool && tableModule.columnTool.reposition();
           tableModule.rowTool && tableModule.rowTool.reposition();
           tableModule.tableTool && tableModule.tableTool.reposition();

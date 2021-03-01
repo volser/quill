@@ -1,4 +1,3 @@
-import Quill from '../core/quill';
 import extend from 'extend';
 import { v4 as uuid } from 'uuid';
 import Delta from 'quill-delta';
@@ -9,6 +8,7 @@ import {
   LeafBlot,
   Scope,
 } from 'parchment';
+import Quill from '../core/quill';
 import Break from './break';
 import Inline from './inline';
 import TextBlot from './text';

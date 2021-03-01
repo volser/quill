@@ -1,5 +1,5 @@
-import Quill from '../../core/quill';
 import Delta from 'quill-delta';
+import Quill from '../../core/quill';
 import { css } from '../clickup-table-control/utils';
 import { THE_KEY_FOR_EXPANDED_TOGGLE_LIST } from '../clickup-storage/storage';
 
@@ -36,7 +36,7 @@ class TableCellLine extends Block {
     const node = super.create(value);
 
     CELL_IDENTITY_KEYS.forEach(key => {
-      let identityMaker = key === 'row' ? rowId : cellId;
+      const identityMaker = key === 'row' ? rowId : cellId;
       node.setAttribute(`data-${key}`, value[key] || identityMaker());
     });
 
@@ -183,11 +183,11 @@ class TableCell extends Container {
     const formats = {};
 
     if (domNode.hasAttribute('data-row')) {
-      formats['row'] = domNode.getAttribute('data-row');
+      formats.row = domNode.getAttribute('data-row');
     }
 
     if (domNode.hasAttribute('data-cell')) {
-      formats['cell'] = domNode.getAttribute('data-cell');
+      formats.cell = domNode.getAttribute('data-cell');
     }
 
     return CELL_ATTRIBUTES.reduce((formats, attribute) => {
@@ -210,11 +210,11 @@ class TableCell extends Container {
     const formats = {};
 
     if (this.domNode.hasAttribute('data-row')) {
-      formats['row'] = this.domNode.getAttribute('data-row');
+      formats.row = this.domNode.getAttribute('data-row');
     }
 
     if (this.domNode.hasAttribute('data-cell')) {
-      formats['cell'] = this.domNode.getAttribute('data-cell');
+      formats.cell = this.domNode.getAttribute('data-cell');
     }
 
     return CELL_ATTRIBUTES.reduce((formats, attribute) => {
@@ -278,7 +278,8 @@ class TableCell extends Container {
           const childFormats = child.formats();
           if (child instanceof ListContainer) {
             return cellId === childFormats.cell;
-          } else if (child instanceof TableCellLine) {
+          }
+          if (child instanceof TableCellLine) {
             return cellId === childFormats['table-cell-line'].cell;
           }
         })
@@ -405,7 +406,7 @@ TableBody.tagName = 'TBODY';
 
 class TableCol extends Block {
   static create(value) {
-    let node = super.create(value);
+    const node = super.create(value);
     COL_ATTRIBUTES.forEach(attrName => {
       node.setAttribute(
         `${attrName}`,
@@ -445,7 +446,7 @@ TableColGroup.tagName = 'colgroup';
 
 class TableContainer extends Container {
   static create() {
-    let node = super.create();
+    const node = super.create();
     return node;
   }
 
@@ -555,8 +556,7 @@ class TableContainer extends Container {
       const colGroup = this.colGroup();
       if (!colGroup || !this.domNode.parentNode) return;
       const tableWidth = colGroup.children.reduce((sumWidth, col) => {
-        sumWidth =
-          sumWidth + parseInt(col.formats()[TableCol.blotName].width, 10);
+        sumWidth += parseInt(col.formats()[TableCol.blotName].width, 10);
         return sumWidth;
       }, 0);
       this.domNode.style.width = `${tableWidth}px`;
@@ -844,7 +844,7 @@ class ListContainer extends Container {
               : typeof child.formats === 'function'
               ? child.formats()
               : {};
-          return cell === (childFormats['list'] && childFormats['list'].cell);
+          return cell === (childFormats.list && childFormats.list.cell);
         })
         .some(item => !item);
       if (hasDifferentCellChildren) {
@@ -994,17 +994,15 @@ class ListItem extends Block {
             colspan,
           });
         }
+      } else if (row && cell) {
+        this.replaceWith(TableCellLine.blotName, {
+          row,
+          cell,
+          rowspan,
+          colspan,
+        });
       } else {
-        if (row && cell) {
-          this.replaceWith(TableCellLine.blotName, {
-            row,
-            cell,
-            rowspan,
-            colspan,
-          });
-        } else {
-          super.format(name, value);
-        }
+        super.format(name, value);
       }
     } else if (name === TableCellLine.blotName) {
       if (value) {
@@ -1021,7 +1019,7 @@ class ListItem extends Block {
     const children = [];
     const curFormat = this.listFormats();
     const curIndent = curFormat.indent || 0;
-    let next = this.next;
+    let { next } = this;
     let nextFormat =
       (next && typeof next.listFormats === 'function' && next.listFormats()) ||
       {};
@@ -1075,9 +1073,8 @@ class ListItem extends Block {
       return (
         nextFormats && nextFormats.list && nextIndent && nextIndent > curIndent
       );
-    } else {
-      return false;
     }
+    return false;
   }
 
   expandItem() {
@@ -1098,7 +1095,7 @@ class ListItem extends Block {
     if (!this.isToggleListItem()) return [];
     const children = [];
     const curIndent = this.getIndent();
-    let next = this.next;
+    let { next } = this;
     let nextFormat =
       (next && typeof next.listFormats === 'function' && next.listFormats()) ||
       {};
@@ -1131,7 +1128,7 @@ class ListItem extends Block {
     const curFormat = this.listFormats();
     const curIndent = this.getIndent();
     if (curFormat.list.list === 'toggled') {
-      let next = this.next;
+      let { next } = this;
       let nextFormat =
         (next &&
           typeof next.listFormats === 'function' &&
@@ -1165,7 +1162,7 @@ class ListItem extends Block {
   }
 
   getToggleParents() {
-    let prev = this.prev;
+    let { prev } = this;
     let prevFormat =
       (prev && typeof prev.listFormats === 'function' && prev.listFormats()) ||
       {};
@@ -1276,7 +1273,7 @@ class ListItem extends Block {
 
   getIndent() {
     const listFormats = this.listFormats();
-    return listFormats['indent'] || 0;
+    return listFormats.indent || 0;
   }
 }
 ListItem.blotName = 'list';
@@ -1341,7 +1338,7 @@ class ListBlockWrapper extends Container {
   getListItemChildren() {
     const children = [];
     const curIndent = this.getIndent();
-    let next = this.next;
+    let { next } = this;
     let nextIndent =
       (next && typeof next.getIndent === 'function' && next.getIndent()) || 0;
     while (
@@ -1384,9 +1381,8 @@ class ListBlockWrapper extends Container {
       return (
         nextFormats && nextFormats.list && nextIndent && nextIndent > curIndent
       );
-    } else {
-      return false;
     }
+    return false;
   }
 
   expandItem() {
@@ -1406,7 +1402,7 @@ class ListBlockWrapper extends Container {
   }
 
   getToggleParents() {
-    let prev = this.prev;
+    let { prev } = this;
     let prevFormat =
       (prev && typeof prev.listFormats === 'function' && prev.listFormats()) ||
       {};
